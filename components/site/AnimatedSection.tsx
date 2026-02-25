@@ -9,8 +9,9 @@ type AnimatedSectionProps = {
     className?: string;
 };
 
-export default function AnimatedSection({ id, children, className }: AnimatedSectionProps) {
-    return (
+export default function AnimatedSection(
+    { id, children, className }: AnimatedSectionProps
+): JSX.Element {    return (
         <motion.section
             id={id}
             initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
