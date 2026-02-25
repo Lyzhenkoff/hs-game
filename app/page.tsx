@@ -47,19 +47,58 @@ export default function Home() {
 
 
 
-        <footer className="border-t border-zinc-900">
-          <div className="mx-auto max-w-6xl px-6 py-10 text-sm text-zinc-200/70 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>© {new Date().getFullYear()} Ход Судьбы</div>
-            <div className="flex flex-wrap gap-4">
-              <a className="hover:text-zinc-50 transition" href="https://t.me/" target="_blank" rel="noreferrer">
-                Telegram
-              </a>
-              <a className="hover:text-zinc-50 transition" href="/offer">
-                Публичная оферта
-              </a>
-            </div>
-          </div>
-        </footer>
+          <footer className="mt-24 border-t border-white/10 bg-black text-white">
+              <div className="mx-auto max-w-6xl px-5 py-12">
+
+                  {/* Основной блок */}
+                  <div className="flex flex-col gap-6 md:flex-row md:justify-between">
+
+                      <div>
+                          <div className="text-lg font-semibold">Ход Судьбы</div>
+                          <div className="mt-2 text-sm text-white/60">
+                              Иммерсивные игровые события
+                          </div>
+                      </div>
+
+                      <div className="text-sm text-white/60 space-y-2">
+                          <div>
+                              <a href="/offer" className="hover:text-white">
+                                  Публичная оферта
+                              </a>
+                          </div>
+                          <div>
+                              <a href="/privacy" className="hover:text-white">
+                                  Политика конфиденциальности
+                              </a>
+                          </div>
+                      </div>
+
+                  </div>
+
+                  {/* Юридический блок */}
+                  <div className="mt-10 text-xs text-white/40 leading-relaxed">
+                      <div>
+                          Индивидуальный предприниматель Лыженков Кирилл Александрович
+                      </div>
+                      <div>
+                          ОГРНИП: 326784700073921 · ИНН: 781101882985
+                      </div>
+                      <div>
+                          Email:{" "}
+                          <a
+                              href="mailto:kir.lyzhenkoff@gmail.com"
+                              className="hover:text-white"
+                          >
+                              kir.lyzhenkoff@gmail.com
+                          </a>
+                      </div>
+                      <div className="mt-2">
+                          © {new Date().getFullYear()} Ход Судьбы. Все права защищены.
+                      </div>
+                  </div>
+
+              </div>
+          </footer>
       </main>
   );
 }
