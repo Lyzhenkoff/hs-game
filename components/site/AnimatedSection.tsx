@@ -1,25 +1,15 @@
-"use client";
-
-import { motion } from "framer-motion";
-import type { ReactNode } from "react";
-
-type AnimatedSectionProps = {
+export default function AnimatedSection({
+                                            id,
+                                            children,
+                                            className = "",
+                                        }: {
     id?: string;
-    children: ReactNode;
+    children: React.ReactNode;
     className?: string;
-};
-
-export default function AnimatedSection({ id, children, className }: AnimatedSectionProps) {
+}) {
     return (
-        <motion.section
-            id={id}
-            initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
-            whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            viewport={{ once: true, amount: 0.25 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className={`border-t border-zinc-900/80 ${className ?? ""}`}
-        >
+        <section id={id} className={className}>
             {children}
-        </motion.section>
+        </section>
     );
 }
