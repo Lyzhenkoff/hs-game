@@ -1,0 +1,72 @@
+[
+  {
+    "id": "3f6f2ac2-5767-4cab-9e77-d9753c4408b0",
+    "createdAt": "2026-02-19T13:14:58.334Z",
+    "eventTitle": "Открытая игра: Викторианский Лондон",
+    "eventDate": "Скоро (анонс в Telegram)",
+    "city": "Москва / СПб",
+    "name": "Кирилл",
+    "contact": "klyzh",
+    "seats": "2",
+    "message": ""
+  },
+  {
+    "id": "a9e45eec-9165-4a91-acc4-e767490c320c",
+    "createdAt": "2026-02-19T13:16:07.964Z",
+    "eventTitle": "Тестовая игра: Викторианский Лондон",
+    "eventDate": "23/02",
+    "city": "СПб",
+    "name": "андрей",
+    "contact": "9818179882",
+    "seats": "1",
+    "message": ""
+  },
+  {
+    "id": "bc0414e9-5985-46c8-8a1b-9664dc11ebf2",
+    "createdAt": "2026-02-19T13:16:21.522Z",
+    "eventTitle": "Тестовая игра: Викторианский Лондон",
+    "eventDate": "23/02",
+    "city": "СПб",
+    "name": "андрей",
+    "contact": "9818179882",
+    "seats": "1",
+    "message": ""
+  },
+  {
+    "id": "65a1c16f-643e-48a5-bf49-135610dbb8ec",
+    "createdAt": "2026-02-19T17:34:44.519Z",
+    "eventTitle": "Тестовая игра: Викторианский Лондон",
+    "eventDate": "23/02",
+    "city": "СПб",
+    "name": "Елизавета",
+    "contact": "89112161655",
+    "seats": "100",
+    "message": ""
+  },
+  {
+    "id": "722c9ec3-d92e-4283-bedd-15cbf187a3f8",
+    "createdAt": "2026-02-19T17:34:57.464Z",
+    "eventTitle": "Тестовая игра: Викторианский Лондон",
+    "eventDate": "23/02",
+    "city": "СПб",
+    "name": "Елизавета",
+    "contact": "89112161655",
+    "seats": "100",
+    "message": ""
+  },
+  {
+    "id": "c53a7102-8276-496b-94dd-eeafdaaaa590",
+    "createdAt": "2026-02-24T17:20:31.770Z",
+    "eventTitle": "Тестовая игра: Викторианский Лондон",
+    "eventDate": "23/02",
+    "city": "СПб",
+    "name": "Кирилл",
+    "contact": "panf",
+    "seats": "10",
+    "message": "",
+    "mode": "team",
+    "ticket": "2500",
+    "teamName": "FFFF",
+    "faction": ""
+  }
+]

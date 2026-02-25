@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // на проде поменяем на "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  USER
+  ADMIN
+  SMM
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String?  @unique
+  emailVerified DateTime?
+  image         String?
+  role          Role     @default(USER)
+
+  accounts      Account[]
+  sessions      Session[]
+
+  registrations Registration[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  passwordHash String?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  date        DateTime?
+  city        String?
+  status      String   @default("DRAFT") // DRAFT / OPEN / CLOSED
+  capacity    Int?     // если хочешь лимит
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  registrations Registration[]
+}
+
+model Registration {
+  id        String   @id @default(cuid())
+
+  eventId   String
+  userId    String?
+
+  mode      String   // "team" | "solo"
+  name      String
+  contact   String
+  seats     Int      @default(1)
+  teamName  String?
+  ticket    Int      // 1000/1500/2000/3000
+  faction   String?
+  message   String?
+
+  createdAt DateTime @default(now())
+
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([createdAt])
+}
+
+model SiteImage {
+  id        String   @id @default(cuid())
+  key       String   @unique // например: "hero_1", "hero_2", "poster_bg_1"
+  url       String
+  updatedAt DateTime @updatedAt
+}
