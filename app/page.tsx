@@ -10,13 +10,13 @@ import AuthButtons from "@/components/site/AuthButtons";
 
 export default function Home() {
   return (
-      <main className="min-h-screen text-zinc-50" id="top">
+      <main className="min-h-[55vh] sm:min-h-[65vh] md:min-h-[75vh] text-zinc-50" id="top">
           <Monogram />
           {/* <div className="flex items-center justify-between">*/}
           {/*      <div>...</div>*/}
           {/*    <AuthButtons />*/}
           {/*</div>*/}
-        <div className="mx-auto max-w-6xl px-6 py-12 md:py-16">
+        <div className="mx-auto max-w-6xl px-6 py-10 md:py-16">
           <HeroCarouselBackground />
         </div>
 
