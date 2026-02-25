@@ -1,4 +1,4 @@
-import AnimatedSection from "../components/site/AnimatedSection";
+import AnimatedSection from "@/components/site/AnimatedSection";
 import CalendarPoster from "../components/site/CalendarPoster";
 import Monogram from "../components/site/Monogram";
 import Divider from "../components/site/Divider";

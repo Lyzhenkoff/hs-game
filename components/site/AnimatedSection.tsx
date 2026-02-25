@@ -9,16 +9,16 @@ type AnimatedSectionProps = {
     className?: string;
 };
 
-export default function AnimatedSection(
-    { id, children, className }: AnimatedSectionProps
-): JSX.Element {    return (
+export default function AnimatedSection({ id, children, className }: AnimatedSectionProps) {
+    return (
         <motion.section
             id={id}
             initial={{ opacity: 0, y: 18, filter: "blur(6px)" }}
             whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
             viewport={{ once: true, amount: 0.25 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className={["border-t border-zinc-900/80", className].filter(Boolean).join(" ")}        >
+            className={`border-t border-zinc-900/80 ${className ?? ""}`}
+        >
             {children}
         </motion.section>
     );
