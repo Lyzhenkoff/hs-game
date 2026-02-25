@@ -1,5 +1,4 @@
-import { prisma } from "@/lib/prisma";
-
+import prisma from "@/lib/prisma";
 export default async function AdminRegistrationsPage() {
     const events = await prisma.event.findMany({
         orderBy: { createdAt: "desc" },
