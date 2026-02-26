@@ -18,16 +18,8 @@ export default function RootLayout({
         <html lang="ru">
         <body>
         <Providers>{children}</Providers>
-        export default function RootLayout({ children }: { children: React.ReactNode }) {
-            return (
-            <html lang="ru">
-            <body>
-        {children}
         <SpeedInsights />
-        </body>
-        </html>
-    );
-}
+
         </body>
         </html>
     );
