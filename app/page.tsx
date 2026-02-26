@@ -7,6 +7,7 @@ import RequestGameForm from "../components/site/RequestGameForm";
 import FactionsSection from "@/components/site/FactionsSection";
 import AuthButtons from "@/components/site/AuthButtons";
 import TestimonialsSection from "@/components/site/TestimonialsSection";
+import GallerySection from "@/components/site/GallerySection";
 
 export default function Home() {
   return (
@@ -42,6 +43,7 @@ export default function Home() {
           <CalendarPoster />
               <FactionsSection />
               <TestimonialsSection />
+              <GallerySection />
           </AnimatedSection>
           <RequestGameForm />
 
