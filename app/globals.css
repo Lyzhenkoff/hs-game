@@ -216,3 +216,38 @@ body { background: #000; }
   );
   opacity: 0.65;
 }
+.fog-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fog {
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+          circle at 30% 30%,
+          rgba(255, 255, 255, 0.06),
+          transparent 40%
+  ),
+  radial-gradient(
+          circle at 70% 60%,
+          rgba(255, 255, 255, 0.04),
+          transparent 50%
+  );
+  animation: fogMove 40s linear infinite;
+}
+
+@keyframes fogMove {
+  0% {
+    transform: translate(-10%, -10%);
+  }
+  50% {
+    transform: translate(10%, 5%);
+  }
+  100% {
+    transform: translate(-10%, -10%);
+  }
+}

@@ -18,8 +18,14 @@ export default function GallerySection() {
     const [active, setActive] = useState<string | null>(null);
 
     return (
-        <section className="border-t border-zinc-900 bg-black">
-            <div className="mx-auto max-w-6xl px-6 py-20">
+        <section className="relative border-t border-zinc-900 bg-black overflow-hidden">
+
+            {/* FOG BACKGROUND */}
+            <div className="fog-layer">
+                <div className="fog" />
+            </div>
+
+            <div className="relative z-10 mx-auto max-w-6xl px-6 py-20">            <div className="mx-auto max-w-6xl px-6 py-20">
                 <div className="flex items-end justify-between mb-12">
                     <div>
                         <h2 className="text-2xl md:text-4xl font-semibold">
