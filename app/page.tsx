@@ -86,10 +86,10 @@ export default function Home() {
                       <div>
                           Email:{" "}
                           <a
-                              href="mailto:kir.lyzhenkoff@gmail.com"
+                              href="mailto:info@hs-game.ru"
                               className="hover:text-white"
                           >
-                              kir.lyzhenkoff@gmail.com
+                              info@hs-game.ru
                           </a>
                       </div>
                       <div className="mt-2">
