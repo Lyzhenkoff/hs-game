@@ -6,7 +6,7 @@ import HeroCarouselBackground from "../components/site/HeroCarouselBackground";
 import RequestGameForm from "../components/site/RequestGameForm";
 import FactionsSection from "@/components/site/FactionsSection";
 import AuthButtons from "@/components/site/AuthButtons";
-
+import TestimonialsSection from "@/components/site/TestimonialsSection";
 
 export default function Home() {
   return (
@@ -41,7 +41,7 @@ export default function Home() {
           <AnimatedSection id="calendar">
           <CalendarPoster />
               <FactionsSection />
-
+              <TestimonialsSection />
           </AnimatedSection>
           <RequestGameForm />
 
