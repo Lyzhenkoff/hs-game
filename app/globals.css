@@ -241,13 +241,7 @@ body { background: #000; }
 }
 
 @keyframes fogMove {
-  0% {
-    transform: translate(-10%, -10%);
-  }
-  50% {
-    transform: translate(10%, 5%);
-  }
-  100% {
-    transform: translate(-10%, -10%);
-  }
+  0% { transform: translate(-10%, -10%); }
+  50% { transform: translate(10%, 5%); }
+  100% { transform: translate(-10%, -10%); }
 }
