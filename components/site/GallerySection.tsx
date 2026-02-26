@@ -11,7 +11,7 @@ const photos = [
     "/gallery/05.jpeg",
     "/gallery/05.jpeg",
     "/gallery/05.jpeg",
-    "/gallery/06.jpeg",
+    "/gallery/05.jpeg",
 ];
 
 export default function GallerySection() {
@@ -25,7 +25,8 @@ export default function GallerySection() {
                 <div className="fog" />
             </div>
 
-            <div className="relative z-10 mx-auto max-w-6xl px-6 py-20">            <div className="mx-auto max-w-6xl px-6 py-20">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 py-20">
+
                 <div className="flex items-end justify-between mb-12">
                     <div>
                         <h2 className="text-2xl md:text-4xl font-semibold">
@@ -97,6 +98,7 @@ export default function GallerySection() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
         </section>
     );
 }
