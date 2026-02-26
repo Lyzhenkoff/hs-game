@@ -71,6 +71,11 @@ export default function Home() {
                                   Политика конфиденциальности
                               </a>
                           </div>
+                          <div>
+                            <a href="/consent" className="hover:text-white">
+                              Согласие на обработку Персональных данных
+                            </a>
+                          </div>
                       </div>
 
                   </div>
