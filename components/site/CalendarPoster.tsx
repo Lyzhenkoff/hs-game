@@ -22,22 +22,22 @@ const events: EventItem[] = [
         tag: "Открытая игра",
         image: "/hero/01.png",
     },
-    {
-        title: "Скоро",
-        date: "Скоро (анонс в Telegram)",
-        city: "СПб",
-        place: "Площадка уточняется",
-        tag: "",
-        image: "/hero/02.png",
-    },
-    {
-        title: "Спецвыпуск: Ночь решений",
-        date: "Скоро (анонс в Telegram)",
-        city: "СПб",
-        place: "Площадка уточняется",
-        tag: "Спецвыпуск",
-        image: "/hero/03.png",
-    },
+    // {
+    //     title: "Скоро",
+    //     date: "Скоро (анонс в Telegram)",
+    //     city: "СПб",
+    //     place: "Площадка уточняется",
+    //     tag: "",
+    //     image: "/hero/02.png",
+    // },
+    // {
+    //     title: "Спецвыпуск: Ночь решений",
+    //     date: "Скоро (анонс в Telegram)",
+    //     city: "СПб",
+    //     place: "Площадка уточняется",
+    //     tag: "Спецвыпуск",
+    //     image: "/hero/03.png",
+    // },
 ];
 
 export default function CalendarPoster() {
