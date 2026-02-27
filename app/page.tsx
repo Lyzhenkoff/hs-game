@@ -43,7 +43,7 @@ export default function Home() {
           <CalendarPoster />
               <FactionsSection />
               <TestimonialsSection />
-              <GallerySection />
+              {/*<GallerySection />*/}
           </AnimatedSection>
           <RequestGameForm />
 
