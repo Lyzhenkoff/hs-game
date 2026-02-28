@@ -80,7 +80,7 @@ export default function RequestGameForm() {
 
                         <div className="mt-6 rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-5">
                             <div className="text-sm text-zinc-200/80">
-                                Быстрый путь — написать в Telegram:
+                                Быстрый путь — написать в Телеграме:
                             </div>
                             <a
                                 href="https://t.me/klyzhh"
