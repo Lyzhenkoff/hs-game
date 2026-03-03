@@ -10,7 +10,7 @@ type Slide = { src: string; alt: string };
 export default function HeroCarouselBackground() {
     const slides = useMemo<Slide[]>(
         () => [
-            { src: "/hero/01.png", alt: "Ход Судьбы — атмосфера" },
+            { src: "/gallery/01.png", alt: "Ход Судьбы — атмосфера" },
             { src: "/hero/02.png", alt: "Ход Судьбы — игра" },
             { src: "/hero/03.png", alt: "Ход Судьбы — фракции" },
             { src: "/hero/04.png", alt: "Ход Судьбы — ведущий" },
