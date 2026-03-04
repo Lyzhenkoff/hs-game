@@ -74,7 +74,9 @@ export default function SignupDialog({
     event: EventInfo | null;
 }) {
     const [step, setStep] = useState<1 | 2 | 3>(1);
-
+    const [agreePrivacy, setAgreePrivacy] = useState(false);
+    const [agreeConsent, setAgreeConsent] = useState(false);
+    const [agreeOffer, setAgreeOffer] = useState(false);
     const [mode, setMode] = useState<Mode | null>(null);
     const [ticket, setTicket] = useState<Ticket | null>(null);
 
@@ -121,6 +123,9 @@ export default function SignupDialog({
         setPayNow(true);
         setStatus("idle");
         setErrorText("");
+        setAgreePrivacy(false);
+        setAgreeConsent(false);
+        setAgreeOffer(false);
     }
 
     function close() {
@@ -482,7 +487,63 @@ export default function SignupDialog({
                   </span>
                                 </div>
                             </div>
+                            <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
+                                <div className="text-sm font-medium text-zinc-50">Согласия</div>
 
+                                <div className="mt-3 space-y-3 text-sm text-zinc-200/80">
+                                    <label className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={agreePrivacy}
+                                            onChange={(e) => setAgreePrivacy(e.target.checked)}
+                                            className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
+                                        />
+                                        <span className="leading-relaxed">
+        Я ознакомился с{" "}
+                                            <a className="underline hover:text-zinc-50" href="/privacy" target="_blank" rel="noreferrer">
+          Политикой конфиденциальности
+        </a>
+        .
+      </span>
+                                    </label>
+
+                                    <label className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={agreeConsent}
+                                            onChange={(e) => setAgreeConsent(e.target.checked)}
+                                            className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
+                                        />
+                                        <span className="leading-relaxed">
+        Я даю{" "}
+                                            <a className="underline hover:text-zinc-50" href="/consent" target="_blank" rel="noreferrer">
+          согласие на обработку персональных данных
+        </a>
+        .
+      </span>
+                                    </label>
+
+                                    <label className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={agreeOffer}
+                                            onChange={(e) => setAgreeOffer(e.target.checked)}
+                                            className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
+                                        />
+                                        <span className="leading-relaxed">
+        Я ознакомился с{" "}
+                                            <a className="underline hover:text-zinc-50" href="/offer" target="_blank" rel="noreferrer">
+          Публичной офертой
+        </a>
+        .
+      </span>
+                                    </label>
+                                </div>
+
+                                <div className="mt-3 text-xs text-zinc-200/60">
+                                    Без этих согласий мы не сможем принять заявку и подтвердить участие.
+                                </div>
+                            </div>
                             <div className="flex items-center justify-between gap-3">
                                 <Button variant="ghost" className="text-zinc-200/70 hover:text-zinc-50" onClick={() => setStep(2)}>
                                     ← Назад
