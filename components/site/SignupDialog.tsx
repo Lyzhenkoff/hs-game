@@ -13,46 +13,45 @@ type EventInfo = {
 };
 
 type Mode = "team" | "solo";
-type Ticket = "1000" | "1500" | "2000" | "3000";
+type Ticket = "1200" | "1500" | "2000" | "premium";
 
 const ticketMeta: Record<
     Ticket,
     { title: string; price: number; desc: string; includes: string[]; badge?: string }
 > = {
-    "1000": {
-        title: "Базовый",
-        price: 1000,
-        desc: "Стандартное участие и материалы для игры.",
-        includes: ["Участие в игре", "Базовый набор материалов"],
-        badge: "Основа",
+    "1200": {
+        title: "Классический",
+        price: 1200,
+        desc: "Базовое участие: всё, что нужно, чтобы полноценно сыграть и кайфануть от сюжета.",
+        includes: ["Участие в игре", "Базовый набор материалов", "Роль/введение от ведущего"],
+        badge: "База",
     },
     "1500": {
-        title: "С реквизитом",
+        title: "С доп. реквизитом",
         price: 1500,
-        desc: "Всё из базового + реквизит/атрибуты для погружения.",
-        includes: ["Участие в игре", "Базовый набор материалов", "Реквизит/атрибуты"],
-        badge: "Вау-погружение",
+        desc: "Классический + дополнительный реквизит и игровые атрибуты для более глубокого погружения.",
+        includes: ["Всё из классического", "Доп. реквизит/атрибуты", "Больше «ощущения мира»"],
+        badge: "Погружение",
     },
     "2000": {
         title: "Выбор фракции",
         price: 2000,
-        desc: "Всё из базового + реквизит + выбор фракции (при наличии мест).",
-        includes: ["Участие в игре", "Базовый набор материалов", "Реквизит/атрибуты", "Выбор фракции"],
-        badge: "Контроль сюжета",
+        desc: "Доп. реквизит + возможность выбрать фракцию (если в ней есть места).",
+        includes: ["Всё из пакета 1500", "Выбор фракции", "Приоритет по рассадке внутри фракции (если применимо)"],
+        badge: "Выбор",
     },
-    "3000": {
-        title: "Максимум",
+    premium: {
+        title: "Премиум",
+        // ⚠️ Если у премиума другая цена — просто поменяй здесь
         price: 3000,
-        desc: "Всё из базового + реквизит + выбор фракции + личное сопровождение и доп. материалы.",
+        desc: "Максимальный комплект: всё, что можно + дополнительное сопровождение и материалы.",
         includes: [
-            "Участие в игре",
-            "Базовый набор материалов",
-            "Реквизит/атрибуты",
-            "Выбор фракции",
-            "Личное сопровождение",
-            "Доп. материалы",
+            "Всё из пакета 2000",
+            "Доп. сопровождение",
+            "Расширенные материалы/артефакты (по возможности)",
+            "Максимальный комфорт участия",
         ],
-        badge: "Премиум",
+        badge: "VIP",
     },
 };
 
@@ -80,23 +79,33 @@ export default function SignupDialog({
     const [ticket, setTicket] = useState<Ticket | null>(null);
 
     const [name, setName] = useState("");
-    const [contact, setContact] = useState("");
+    const [contact, setContact] = useState(""); // phone or telegram
+    const [email, setEmail] = useState(""); // для билета
     const [seats, setSeats] = useState("1");
     const [teamName, setTeamName] = useState("");
     const [faction, setFaction] = useState("");
     const [message, setMessage] = useState("");
 
+    const [payNow, setPayNow] = useState(true); // сценарий: сразу дать ссылку на оплату
     const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
     const [errorText, setErrorText] = useState("");
 
     const price = useMemo(() => (ticket ? ticketMeta[ticket].price : 0), [ticket]);
-    const total = useMemo(() => {
-        const n = Math.max(1, Number.parseInt(seats || "1", 10) || 1);
-        return price * n;
-    }, [price, seats]);
 
-    // Выбор фракции доступен только на 2000+ (2000 и 3000)
-    const allowsFaction = ticket === "2000" || ticket === "3000";
+    const seatsNum = useMemo(() => {
+        const n = Number.parseInt(seats || "1", 10);
+        return Number.isFinite(n) && n > 0 ? n : 1;
+    }, [seats]);
+
+    const total = useMemo(() => {
+        // логика для команды: цена × количество
+        // для соло: один билет
+        if (!ticket) return 0;
+        return ticketMeta[ticket].price * (mode === "team" ? seatsNum : 1);
+    }, [ticket, mode, seatsNum]);
+
+    // Выбор фракции доступен только на 2000+ (2000 и premium)
+    const allowsFaction = ticket === "2000" || ticket === "premium";
 
     function resetAll() {
         setStep(1);
@@ -104,10 +113,12 @@ export default function SignupDialog({
         setTicket(null);
         setName("");
         setContact("");
+        setEmail("");
         setSeats("1");
         setTeamName("");
         setFaction("");
         setMessage("");
+        setPayNow(true);
         setStatus("idle");
         setErrorText("");
     }
@@ -133,18 +144,30 @@ export default function SignupDialog({
                     city: event.city || "",
                     mode,
                     ticket,
+                    ticketTitle: ticketMeta[ticket].title,
+                    ticketPrice: ticketMeta[ticket].price,
+                    total,
+                    seats: mode === "team" ? String(seatsNum) : "1",
                     teamName: mode === "team" ? teamName : "",
                     faction: allowsFaction ? faction : "",
                     name,
                     contact,
-                    seats: mode === "team" ? seats : "1",
+                    email,
                     message,
+                    payNow, // бэкенд может по этому флагу создавать ссылку на оплату
                     source: "site",
                 }),
             });
 
-            const json = await res.json();
-            if (!res.ok || !json.ok) throw new Error(json?.error || "Не удалось отправить");
+            // На бэке хорошо бы возвращать:
+            // { ok: true, paymentUrl?: string }  или { ok: true } если оплату высылаешь вручную
+            const json = await res.json().catch(() => ({} as any));
+            if (!res.ok || !json?.ok) throw new Error(json?.error || "Не удалось отправить");
+
+            // Если бэкенд вернул ссылку на оплату — откроем её сразу
+            if (json?.paymentUrl && typeof json.paymentUrl === "string") {
+                window.open(json.paymentUrl, "_blank", "noopener,noreferrer");
+            }
 
             setStatus("ok");
         } catch (e: any) {
@@ -157,9 +180,19 @@ export default function SignupDialog({
         ? `${event.title}${event.date ? ` • ${event.date}` : ""}${event.city ? ` • ${event.city}` : ""}`
         : "";
 
+    const canSubmit =
+        !!event &&
+        !!mode &&
+        !!ticket &&
+        !!name.trim() &&
+        (!!contact.trim() || !!email.trim()) &&
+        (mode !== "team" || seatsNum > 0) &&
+        (!allowsFaction || !!faction);
+
     return (
         <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(true) : close())}>
-            <DialogContent className="bg-zinc-950/95 border border-zinc-800 text-zinc-100 sm:max-w-[680px] max-h-[90vh] overflow-y-auto overscroll-contain">                {/* Вау-фон */}
+            <DialogContent className="bg-zinc-950/95 border border-zinc-800 text-zinc-100 sm:max-w-[720px] max-h-[90vh] overflow-y-auto overscroll-contain">
+                {/* Фон */}
                 <div className="pointer-events-none absolute inset-0 -z-10">
                     <div className="absolute -top-28 -left-28 h-80 w-80 rounded-full bg-emerald-500/18 blur-3xl" />
                     <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-amber-400/16 blur-3xl" />
@@ -173,7 +206,7 @@ export default function SignupDialog({
                         <div className="mt-2 text-xl font-semibold">
                             {step === 1 && "Формат регистрации"}
                             {step === 2 && "Выбор билета"}
-                            {step === 3 && "Данные и оплата"}
+                            {step === 3 && "Контакты и подтверждение"}
                         </div>
                         {topLine && <div className="mt-2 text-sm text-zinc-200/70">{topLine}</div>}
                     </div>
@@ -183,10 +216,8 @@ export default function SignupDialog({
                     </Button>
                 </div>
 
-                {/* Тонкая “золотая” линия */}
                 <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
 
-                {/* Steps */}
                 <div className="mt-6">
                     {/* STEP 1 */}
                     {step === 1 && (
@@ -201,8 +232,7 @@ export default function SignupDialog({
                             >
                                 <div className="text-lg font-semibold">Зарегистрировать команду</div>
                                 <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                    Вы играете <span className="text-zinc-50">своей командой</span>. Укажи количество участников и (по желанию)
-                                    название.
+                                    Вы приходите <span className="text-zinc-50">своей компанией</span>. Укажи количество участников и (по желанию) название команды.
                                 </div>
                                 <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-zinc-50">
                                     Выбрать <span className="opacity-70 group-hover:translate-x-0.5 transition">→</span>
@@ -217,9 +247,10 @@ export default function SignupDialog({
                                 }}
                                 className="group text-left rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-5 hover:bg-zinc-900/35 transition shadow-[0_0_0_1px_rgba(255,255,255,0.03)]"
                             >
-                                <div className="text-lg font-semibold">Зарегистрироваться одному</div>
+                                <div className="text-lg font-semibold">Прийти одному</div>
                                 <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                    Для одиночных игроков — посадим к другим одиночкам за общий стол.
+                                    Это классная возможность <span className="text-zinc-50">познакомиться с новыми людьми</span>: мы аккуратно посадим вас к другим игрокам,
+                                    чтобы было комфортно, интересно и легко найти «своих».
                                 </div>
                                 <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-zinc-50">
                                     Выбрать <span className="opacity-70 group-hover:translate-x-0.5 transition">→</span>
@@ -247,8 +278,7 @@ export default function SignupDialog({
                                             type="button"
                                             onClick={() => {
                                                 setTicket(k);
-                                                // если билет перестал позволять фракцию — сбросим выбор
-                                                const nextAllowsFaction = k === "2000" || k === "3000";
+                                                const nextAllowsFaction = k === "2000" || k === "premium";
                                                 if (!nextAllowsFaction) setFaction("");
                                             }}
                                             className={[
@@ -325,12 +355,10 @@ export default function SignupDialog({
                       {ticket ? `${ticketMeta[ticket].title} — ${ticketMeta[ticket].price} ₽/чел` : "-"}
                     </span>
                                     </div>
-                                    {mode === "team" && ticket && (
-                                        <div>
-                                            <span className="text-zinc-200/60">Итого (примерно): </span>
-                                            <span className="text-zinc-50 font-medium">{total} ₽</span>
-                                        </div>
-                                    )}
+                                    <div>
+                                        <span className="text-zinc-200/60">Итого: </span>
+                                        <span className="text-zinc-50 font-medium">{total} ₽</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -338,7 +366,7 @@ export default function SignupDialog({
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div>
                                     <div className="text-sm text-zinc-200/80">Имя</div>
-                                    <Input className="mt-2" value={name} onChange={(e) => setName(e.target.value)} placeholder="Имя" />
+                                    <Input className="mt-2" value={name} onChange={(e) => setName(e.target.value)} placeholder="Имя и фамилия" />
                                 </div>
                                 <div>
                                     <div className="text-sm text-zinc-200/80">Контакт</div>
@@ -351,6 +379,19 @@ export default function SignupDialog({
                                 </div>
                             </div>
 
+                            <div>
+                                <div className="text-sm text-zinc-200/80">Email для билета (рекомендуем)</div>
+                                <Input
+                                    className="mt-2"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="you@mail.com"
+                                />
+                                <div className="mt-2 text-xs text-zinc-200/60">
+                                    На этот email можно автоматически отправлять электронный билет и информацию по игре.
+                                </div>
+                            </div>
+
                             {mode === "team" && (
                                 <div className="grid gap-3 sm:grid-cols-2">
                                     <div>
@@ -360,6 +401,7 @@ export default function SignupDialog({
                                             value={seats}
                                             onChange={(e) => setSeats(e.target.value)}
                                             placeholder="Например: 8"
+                                            inputMode="numeric"
                                         />
                                     </div>
                                     <div>
@@ -376,7 +418,7 @@ export default function SignupDialog({
 
                             {allowsFaction && (
                                 <div>
-                                    <div className="text-sm text-zinc-200/80">Фракция</div>
+                                    <div className="text-sm text-zinc-200/80">Выбор фракции</div>
                                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                                         {factions.map((f) => (
                                             <button
@@ -395,7 +437,7 @@ export default function SignupDialog({
                                         ))}
                                     </div>
                                     <div className="mt-2 text-xs text-zinc-200/60">
-                                        Выбор фракции доступен для билетов 2000 и 3000. Если фракция заполнена — согласуем замену.
+                                        Выбор фракции доступен для билетов «Выбор фракции» и «Премиум». Если мест не останется — согласуем замену.
                                     </div>
                                 </div>
                             )}
@@ -406,24 +448,39 @@ export default function SignupDialog({
                                     className="mt-2 min-h-[110px]"
                                     value={message}
                                     onChange={(e) => setMessage(e.target.value)}
-                                    placeholder="Пожелания по столу/времени/формату..."
+                                    placeholder="Пожелания по столу/рассадке/времени или важные детали…"
                                 />
                             </div>
 
-                            {/* Payment placeholder */}
+                            {/* Payment */}
                             <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
-                                <div className="text-sm font-medium text-zinc-50">Оплата</div>
+                                <div className="text-sm font-medium text-zinc-50">Оплата и билет</div>
                                 <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                    После заявки мы подтвердим места и пришлём ссылку на оплату в Telegram.
+                                    Можно оплатить сразу — и после оплаты автоматически получить билет (на email/в Telegram). Либо отправить заявку, и мы пришлём ссылку на оплату вручную.
                                 </div>
-                                {mode === "team" && ticket && (
-                                    <div className="mt-3 text-sm text-zinc-200/80">
-                                        <span className="text-zinc-200/60">Предварительный расчёт: </span>
-                                        <span className="text-zinc-50 font-medium">
-                      {ticketMeta[ticket].price} ₽ × {Math.max(1, Number.parseInt(seats || "1", 10) || 1)} = {total} ₽
-                    </span>
-                                    </div>
-                                )}
+
+                                <div className="mt-4 flex items-start gap-3">
+                                    <input
+                                        id="payNow"
+                                        type="checkbox"
+                                        checked={payNow}
+                                        onChange={(e) => setPayNow(e.target.checked)}
+                                        className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
+                                    />
+                                    <label htmlFor="payNow" className="text-sm text-zinc-200/80 leading-relaxed">
+                                        Хочу получить ссылку на оплату сразу после отправки заявки
+                                        <div className="text-xs text-zinc-200/60 mt-1">
+                                            (Если на бэкенде настроено создание paymentUrl — откроется автоматически.)
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <div className="mt-3 text-sm text-zinc-200/80">
+                                    <span className="text-zinc-200/60">Сумма: </span>
+                                    <span className="text-zinc-50 font-medium">
+                    {ticket ? `${ticketMeta[ticket].price} ₽ × ${mode === "team" ? seatsNum : 1} = ${total} ₽` : "-"}
+                  </span>
+                                </div>
                             </div>
 
                             <div className="flex items-center justify-between gap-3">
@@ -431,30 +488,22 @@ export default function SignupDialog({
                                     ← Назад
                                 </Button>
 
-                                <Button
-                                    className="rounded-xl"
-                                    onClick={submit}
-                                    disabled={
-                                        status === "sending" ||
-                                        !event ||
-                                        !mode ||
-                                        !ticket ||
-                                        !name.trim() ||
-                                        !contact.trim() ||
-                                        (mode === "team" && !(Number.parseInt(seats || "0", 10) > 0)) ||
-                                        (allowsFaction && !faction)
-                                    }
-                                >
+                                <Button className="rounded-xl" onClick={submit} disabled={status === "sending" || !canSubmit}>
                                     {status === "sending" ? "Отправляю…" : "Отправить заявку"}
                                 </Button>
                             </div>
 
                             {status === "ok" && (
                                 <div className="text-sm text-emerald-300/90">
-                                    Заявка отправлена ✅ Мы напишем вам в Telegram для подтверждения и оплаты.
+                                    Заявка отправлена ✅ Мы свяжемся с вами для подтверждения.{" "}
+                                    {payNow ? "Если открылась ссылка на оплату — после оплаты пришлём билет." : "Ссылку на оплату пришлём в Telegram."}
                                 </div>
                             )}
                             {status === "error" && <div className="text-sm text-red-300/90">Не отправилось: {errorText}</div>}
+
+                            <div className="text-xs text-zinc-200/55 leading-relaxed">
+                                Нажимая «Отправить заявку», вы соглашаетесь на обработку персональных данных для связи и оформления участия.
+                            </div>
                         </div>
                     )}
                 </div>
