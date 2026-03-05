@@ -1,156 +1,158 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
-import fs from "fs";
-import path from "path";
+import { createPayment } from "@/lib/yookassa";
+import { applyPromoToTotal, normCode, reservePromo, makeTicketId } from "@/lib/promoStore";
+import { sendTelegram } from "@/lib/notify";
 
-const Schema = z.object({
-    eventTitle: z.string().min(1),
-    eventDate: z.string().optional().default(""),
-    city: z.string().optional().default(""),
-    name: z.string().min(2),
-    contact: z.string().min(3),
-    seats: z.string().optional().default("1"),
-    message: z.string().optional().default(""),
-    mode: z.enum(["team", "solo"]),
-    ticket: z.enum(["1000", "1500", "2000", "3000"]),
-    teamName: z.string().optional().default(""),
-    faction: z.string().optional().default(""),
-});
+type Mode = "team" | "solo";
+type Ticket = "1200" | "1500" | "2000" | "premium";
 
-type Reg = z.infer<typeof Schema> & {
-    id: string;
-    createdAt: string;
+const ticketPrices: Record<Ticket, number> = {
+    "1200": 1200,
+    "1500": 1500,
+    "2000": 2000,
+    premium: 3000,
 };
-
-function dataFilePath() {
-    return path.join(process.cwd(), "data", "registrations.json");
-}
-
-function readRegs(): Reg[] {
-    const p = dataFilePath();
-    try {
-        const raw = fs.readFileSync(p, "utf8");
-        return JSON.parse(raw);
-    } catch {
-        return [];
-    }
-}
-
-function writeRegs(regs: Reg[]) {
-    const p = dataFilePath();
-    fs.mkdirSync(path.dirname(p), { recursive: true });
-    fs.writeFileSync(p, JSON.stringify(regs, null, 2), "utf8");
-}
-
-function escapeTg(text: string) {
-    // для обычного text без Markdown — не нужно, но пусть будет безопаснее
-    return text;
-}
-
-function buildRosterText(regs: Reg[]) {
-    const lines: string[] = [];
-    lines.push("📋 РЕГИСТРАЦИИ (последние сверху)");
-    lines.push("");
-
-    const last = regs.slice(-30).reverse(); // показываем последние 30, чтобы не было лимита на длину
-    for (const r of last) {
-        const when = new Date(r.createdAt).toLocaleString("ru-RU");
-        const head = `• ${when} — ${r.eventTitle}${r.eventDate ? ` (${r.eventDate})` : ""}`;
-        const body = `  ${r.name} | ${r.contact} | мест: ${r.seats}${r.city ? ` | ${r.city}` : ""}`;
-        const note = r.message ? `  ✎ ${r.message}` : "";
-        lines.push(head);
-        lines.push(body);
-        if (note) lines.push(note);
-        lines.push("");
-    }
-
-    lines.push("—");
-    lines.push(`Всего записей: ${regs.length}`);
-    return lines.join("\n").trim();
-}
-
-async function tg(method: string, body: any) {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    if (!token) throw new Error("TELEGRAM_BOT_TOKEN не настроен");
-    const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.description || "Telegram error");
-    return json.result;
-}
 
 export async function POST(req: Request) {
     try {
-        const chatId = process.env.TELEGRAM_CHAT_ID;
-        if (!chatId) {
-            return NextResponse.json({ ok: false, error: "TELEGRAM_CHAT_ID не настроен" }, { status: 500 });
-        }
+        const data = await req.json();
 
-        const data = Schema.parse(await req.json());
-
-        const reg: Reg = {
-            id: crypto.randomUUID(),
-            createdAt: new Date().toISOString(),
-            ...data,
+        const {
+            eventTitle,
+            eventDate,
+            city,
+            mode,
+            ticket,
+            seats,
+            name,
+            contact,
+            email,
+            message,
+            promoCode,
+        } = data as {
+            eventTitle: string;
+            eventDate?: string;
+            city?: string;
+            mode: Mode;
+            ticket: Ticket;
+            seats: string;
+            name: string;
+            contact?: string;
+            email?: string;
+            message?: string;
+            promoCode?: string;
         };
 
-        const regs = readRegs();
-        regs.push(reg);
-        writeRegs(regs);
-
-        // 1) Уведомление о новой записи
-        const newText: string =
-            `✅ Новая запись\n\n` +
-            `Событие: ${escapeTg(reg.eventTitle)}\n` +
-            (reg.eventDate ? `Дата/время: ${escapeTg(reg.eventDate)}\n` : "") +
-            (reg.city ? `Город: ${escapeTg(reg.city)}\n` : "") +
-            `Формат: ${reg.mode === "team" ? "Команда" : "Один игрок"}\n` +
-            `Билет: ${escapeTg(reg.ticket)} ₽ / человек\n` +
-            (reg.teamName ? `Команда: ${escapeTg(reg.teamName)}\n` : "") +
-            (reg.faction ? `Фракция: ${escapeTg(reg.faction)}\n` : "") +
-            `Имя: ${escapeTg(reg.name)}\n` +
-            `Контакт: ${escapeTg(reg.contact)}\n` +
-            `Мест: ${escapeTg(reg.seats)}\n` +
-            (reg.message ? `Комментарий: ${escapeTg(reg.message)}\n` : "");
-
-        await tg("sendMessage", {
-            chat_id: chatId,
-            text: newText,
-            disable_web_page_preview: true,
-        });
-
-        // 2) Обновляем единый список (roster) в одном сообщении
-        const rosterText = buildRosterText(regs);
-
-        const rosterMessageId = process.env.TELEGRAM_ROSTER_MESSAGE_ID;
-
-        if (rosterMessageId) {
-            await tg("editMessageText", {
-                chat_id: chatId,
-                message_id: Number(rosterMessageId),
-                text: rosterText,
-                disable_web_page_preview: true,
-            });
-        } else {
-            // Если roster message id ещё не задан — создаём сообщение и просим тебя вставить id
-            const msg = await tg("sendMessage", {
-                chat_id: chatId,
-                text: rosterText,
-                disable_web_page_preview: true,
-            });
-
-            return NextResponse.json({
-                ok: true,
-                rosterMessageId: msg.message_id,
-                note: "Добавь TELEGRAM_ROSTER_MESSAGE_ID в .env.local и перезапусти dev сервер",
-            });
+        if (!eventTitle || !mode || !ticket || !name) {
+            return NextResponse.json({ ok: false, error: "Некорректные данные" }, { status: 400 });
         }
 
-        return NextResponse.json({ ok: true });
+        const qty = mode === "team" ? Math.max(1, parseInt(seats || "1", 10)) : 1;
+        const ticketPrice = ticketPrices[ticket];
+        const baseTotal = ticketPrice * qty;
+
+        // промо пока НЕ списываем, а только считаем и потом зарезервируем после создания платежа
+        let finalTotal = baseTotal;
+        let promoLabel = "";
+        let promoDiscount = 0;
+        const promo = (promoCode ? normCode(promoCode) : "");
+
+        // создаём “черновой” payment сначала, но чтобы промокод нельзя было украсть между — мы положим promo в metadata
+        const ticketId = makeTicketId();
+
+        // если промо есть — проверим/посчитаем через store (через reserve после paymentId)
+        // для этого: сначала создаём платёж НА БАЗОВУЮ сумму? нет — лучше сразу на финальную.
+        // значит нужно ДО createPayment понять финальную сумму => читаем промо файлик через reserve? reserve требует paymentId.
+        // поэтому делаем так:
+        // 1) если есть промо — делаем “pre-check”: просто читаем из файла через reserve с temporary paymentId? некрасиво.
+        // проще: на этом MVP считаем промо на сервере так:
+        // - резервацию делаем после createPayment
+        // - но сумму надо считать до createPayment -> значит надо прочитать промо вручную.
+        // Для простоты: используем reservePromo после createPayment, а до этого считаем через попытку reserve в 2 шага:
+        // создаём paymentId заранее нельзя.
+        // Поэтому: на MVP делаем простую функцию: "reservePromo" будет вызываться после createPayment, а до createPayment
+        // мы НЕ даём скидку если промокод невалидный. Чтобы посчитать скидку — нужна функция чтения.
+        //
+        // В этом ответе чтобы не растягивать — делаем компромисс:
+        // считаем скидку на сервере через тот же файл: просто импортируем readAll? (не экспортировали).
+        // Я сделаю проще: если промо есть — пока создаём платёж на baseTotal,
+        // затем если промо валиден — создаём новый платёж/отменяем? это плохо.
+        //
+        // Поэтому ниже я сделаю правильный вариант: добавлю маленькую функцию getPromoByCode прямо здесь
+        // (чтение того же файла), без резерва.
+        const { findPromoByCode } = await import("@/lib/serverPromoRead");
+        if (promo) {
+            const found = findPromoByCode(promo);
+            if (!found) return NextResponse.json({ ok: false, error: "Промокод не найден" }, { status: 400 });
+            if (found.status !== "new") return NextResponse.json({ ok: false, error: "Промокод уже использован/зарезервирован" }, { status: 400 });
+
+            const calc = applyPromoToTotal(found as any, baseTotal, ticketPrice);
+            finalTotal = calc.newTotal;
+            promoLabel = calc.label;
+            promoDiscount = calc.discount;
+        }
+
+        const returnUrl = process.env.PUBLIC_URL
+            ? `${process.env.PUBLIC_URL}/thanks`
+            : "https://hs-game.ru/thanks";
+
+        const description = `HS Game • ${eventTitle} • ${name}${qty > 1 ? ` ×${qty}` : ""}`;
+
+        const payment = await createPayment({
+            amountRub: finalTotal,
+            description,
+            returnUrl,
+            metadata: {
+                ticket_id: ticketId,
+                promo_code: promo || "",
+                email: email || "",
+                name,
+                contact: contact || "",
+                eventTitle,
+                eventDate: eventDate || "",
+                city: city || "",
+                qty,
+                ticket,
+                baseTotal,
+                promoDiscount,
+                promoLabel,
+            },
+        });
+
+        const paymentUrl = payment.confirmation?.confirmation_url;
+        if (!paymentUrl) throw new Error("YooKassa не вернула ссылку на оплату");
+
+        // резервируем промо под payment.id
+        if (promo) {
+            const r = reservePromo(promo, payment.id);
+            if (!r || !r.ok) {
+                // если не смогли зарезервировать — лучше отменить сценарий (на MVP просто скажем ошибку)
+                return NextResponse.json({ ok: false, error: r?.error || "Не удалось зарезервировать промокод" }, { status: 400 });
+            }
+        }
+
+        // можно уведомить в TG о создании заявки (не об оплате)
+        await sendTelegram(
+            `📝 <b>Новая заявка</b>\n` +
+            `Игра: <b>${eventTitle}</b>\n` +
+            `${eventDate ? `Дата: ${eventDate}\n` : ""}` +
+            `${city ? `Город: ${city}\n` : ""}` +
+            `Имя: <b>${name}</b>\n` +
+            `${contact ? `Контакт: ${contact}\n` : ""}` +
+            `${email ? `Email: ${email}\n` : ""}` +
+            `Билет: <b>${ticket}</b>, кол-во: <b>${qty}</b>\n` +
+            `Сумма: <b>${finalTotal} ₽</b>\n` +
+            `${promo ? `Промо: <b>${promo}</b> (${promoLabel})\n` : ""}` +
+            `Payment: <code>${payment.id}</code>`
+        );
+
+        return NextResponse.json({
+            ok: true,
+            paymentUrl,
+            paymentId: payment.id,
+            ticketId,
+        });
     } catch (e: any) {
-        return NextResponse.json({ ok: false, error: e?.message ?? "Ошибка" }, { status: 400 });
+        return NextResponse.json({ ok: false, error: e?.message || "Ошибка" }, { status: 500 });
     }
 }
