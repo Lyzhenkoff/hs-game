@@ -14,8 +14,8 @@ function ensureFile() {
     if (!fs.existsSync(PROMO_FILE)) {
         const seed: Promo[] = [
             // 6 ДР free
-            { code: "DR-HS-01", type: "FREE_ONE", status: "new" },
-            { code: "DR-HS-02", type: "FREE_ONE", status: "new" },
+            { code: "DR-HS-01hg322", type: "FREE_ONE", status: "new" },
+            { code: "DR-HS-02fd031", type: "FREE_ONE", status: "new" },
             { code: "DR-HS-03", type: "FREE_ONE", status: "new" },
             { code: "DR-HS-04", type: "FREE_ONE", status: "new" },
             { code: "DR-HS-05", type: "FREE_ONE", status: "new" },

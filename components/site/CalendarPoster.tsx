@@ -15,12 +15,12 @@ type EventItem = {
 
 const events: EventItem[] = [
     {
-        title: "Скоро",
-        date: "дата уточняется",
+        title: "ПОСЛЕДНЯЯ ПЕСНЬ ПОРТО-НЕРО",
+        date: "29/03",
         city: "СПб",
-        place: "Площадка уточняется",
+        place: "бар «Зов Сирен», Садовая улица, 25",
         tag: "Открытая игра",
-        image: "/hero/01.png",
+        image: "/gallery/ПОСТЕР.png",
     },
     // {
     //     title: "Скоро",
