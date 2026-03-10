@@ -42,7 +42,87 @@ export default function Home() {
           <AnimatedSection id="calendar">
           <CalendarPoster />
               {/*<FactionsSection />*/}
+              <section id="about-game" className="bg-black text-white">
+                  <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
+                      <div className="max-w-3xl">
+                          <div className="text-sm uppercase tracking-[0.25em] text-zinc-400">
+                              Что это за игра
+                          </div>
+
+                          <h2 className="mt-4 text-3xl md:text-5xl font-semibold leading-tight">
+                              Ход Судьбы — это сюжетная командная игра,
+                              где игроки меняют ход истории
+                          </h2>
+
+                          <p className="mt-6 text-lg text-zinc-300 leading-relaxed">
+                              «Ход Судьбы» — это не квиз и не игра про правильные ответы.
+                              Здесь команды становятся фракциями, принимают решения,
+                              заключают союзы, спорят, договариваются и влияют на развитие сюжета.
+                          </p>
+
+                          <p className="mt-4 text-zinc-400 leading-relaxed">
+                              У каждой фракции есть свои интересы, цели и ресурсы.
+                              Каждый ход меняет баланс сил, а финал зависит от того,
+                              какие решения примут сами игроки.
+                          </p>
+                      </div>
+
+                      <div className="mt-14 grid gap-6 md:grid-cols-3">
+                          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-6">
+                              <div className="text-lg font-semibold">Формат</div>
+                              <p className="mt-3 text-sm text-zinc-300 leading-relaxed">
+                                  Игроки собираются в команды, получают роли фракций
+                                  и участвуют в общей истории, которая развивается в реальном времени.
+                              </p>
+                          </div>
+
+                          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-6">
+                              <div className="text-lg font-semibold">Как проходит игра</div>
+                              <p className="mt-3 text-sm text-zinc-300 leading-relaxed">
+                                  Команды обсуждают стратегию, отдают приказы, ведут переговоры,
+                                  вступают в союзы и сталкиваются с последствиями своих решений.
+                              </p>
+                          </div>
+
+                          <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-6">
+                              <div className="text-lg font-semibold">Чем это отличается</div>
+                              <p className="mt-3 text-sm text-zinc-300 leading-relaxed">
+                                  Здесь нет выбывания и нет единственно правильного пути.
+                                  Каждая игра складывается по-разному — в зависимости от игроков.
+                              </p>
+                          </div>
+                      </div>
+
+                      <div className="mt-12 rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-6 md:p-8">
+                          <div className="max-w-3xl">
+                              <div className="text-sm uppercase tracking-[0.25em] text-zinc-400">
+                                  Что делают игроки
+                              </div>
+
+                              <h3 className="mt-4 text-2xl md:text-3xl font-semibold">
+                                  Переговоры, интриги, союзы и решения, которые реально влияют на сюжет
+                              </h3>
+
+                              <ul className="mt-6 grid gap-3 text-zinc-300 md:grid-cols-2">
+                                  <li className="rounded-xl border border-zinc-800/70 bg-black/20 px-4 py-3">
+                                      Заключают союзы и договариваются с другими фракциями
+                                  </li>
+                                  <li className="rounded-xl border border-zinc-800/70 bg-black/20 px-4 py-3">
+                                      Борются за влияние и ресурсы
+                                  </li>
+                                  <li className="rounded-xl border border-zinc-800/70 bg-black/20 px-4 py-3">
+                                      Принимают стратегические решения
+                                  </li>
+                                  <li className="rounded-xl border border-zinc-800/70 bg-black/20 px-4 py-3">
+                                      Влияют на развитие общей истории
+                                  </li>
+                              </ul>
+                          </div>
+                      </div>
+                  </div>
+              </section>
               <TestimonialsSection />
+
               <GallerySection />
           </AnimatedSection>
           <RequestGameForm />
