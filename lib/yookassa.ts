@@ -16,15 +16,48 @@ export async function createPayment(params: {
     amountRub: number;
     description: string;
     returnUrl: string;
+    email?: string;
     metadata?: Record<string, any>;
 }) {
     const idempotenceKey = makeIdempotenceKey();
 
+    const customerEmail =
+        (params.email || "").trim() ||
+        String(params.metadata?.email || "").trim();
+
+    if (!customerEmail) {
+        throw new Error("Для оплаты нужен корректный email");
+    }
+
+    const amountValue = params.amountRub.toFixed(2);
+
     const body = {
-        amount: { value: params.amountRub.toFixed(2), currency: "RUB" },
-        confirmation: { type: "redirect", return_url: params.returnUrl },
+        amount: {
+            value: amountValue,
+            currency: "RUB",
+        },
+        confirmation: {
+            type: "redirect",
+            return_url: params.returnUrl,
+        },
         capture: true,
         description: params.description,
+        receipt: {
+            customer: {
+                email: customerEmail,
+            },
+            items: [
+                {
+                    description: params.description.slice(0, 128),
+                    quantity: "1.00",
+                    amount: {
+                        value: amountValue,
+                        currency: "RUB",
+                    },
+                    vat_code: 1,
+                },
+            ],
+        },
         metadata: params.metadata || {},
     };
 
@@ -39,8 +72,11 @@ export async function createPayment(params: {
     });
 
     const json = await res.json();
+
     if (!res.ok) {
-        throw new Error(json?.description || json?.message || "YooKassa createPayment failed");
+        throw new Error(
+            json?.description || json?.message || "YooKassa createPayment failed"
+        );
     }
 
     return json as {
@@ -57,7 +93,12 @@ export async function getPayment(paymentId: string) {
         method: "GET",
         headers: { Authorization: authHeader() },
     });
+
     const json = await res.json();
-    if (!res.ok) throw new Error(json?.description || "YooKassa getPayment failed");
+
+    if (!res.ok) {
+        throw new Error(json?.description || "YooKassa getPayment failed");
+    }
+
     return json as any;
 }

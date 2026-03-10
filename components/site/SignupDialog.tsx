@@ -64,19 +64,17 @@ const factions = [
     "Культ Морской Песни",
 ];
 
-type PromoKind = "FREE_ONE_TICKET" | "PERCENT";
 type PromoConfig =
     | { code: string; kind: "FREE_ONE_TICKET" }
-    | { code: string; kind: "PERCENT"; percent: 10 | 15 | 95 };
+    | { code: string; kind: "PERCENT"; percent: 10 | 15 };
 
 const PROMOS: PromoConfig[] = [
-    { code: "DR-HS-01hg322", kind: "FREE_ONE_TICKET" },
-    { code: "DR-HS-02fd031", kind: "FREE_ONE_TICKET" },
-    { code: "DR-HS-03jde3402", kind: "FREE_ONE_TICKET" },
+    { code: "DR-HS-01", kind: "FREE_ONE_TICKET" },
+    { code: "DR-HS-02", kind: "FREE_ONE_TICKET" },
+    { code: "DR-HS-03", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-04", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-05", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-06", kind: "FREE_ONE_TICKET" },
-    { code: "admin-001", kind: "FREE_ONE_TICKET" },
 
     { code: "MEM-FREE-01", kind: "FREE_ONE_TICKET" },
     { code: "MEM-FREE-02", kind: "FREE_ONE_TICKET" },
@@ -88,7 +86,6 @@ const PROMOS: PromoConfig[] = [
     { code: "MEM-FREE-08", kind: "FREE_ONE_TICKET" },
 
     { code: "MEM-15", kind: "PERCENT", percent: 15 },
-    { code: "admin5", kind: "PERCENT", percent: 95 },
 
     { code: "MEM-10-01", kind: "PERCENT", percent: 10 },
     { code: "MEM-10-02", kind: "PERCENT", percent: 10 },
@@ -123,8 +120,6 @@ function calcPromoDiscount(opts: {
     promo: PromoConfig;
     ticketPrice: number;
     total: number;
-    mode: Mode;
-    seatsNum: number;
 }) {
     const { promo, ticketPrice, total } = opts;
 
@@ -137,17 +132,14 @@ function calcPromoDiscount(opts: {
         };
     }
 
-    if (promo.kind === "PERCENT") {
-        const percent = promo.percent;
-        const discount = Math.floor((total * percent) / 100);
-        return {
-            label: `Скидка ${percent}%`,
-            discount,
-            newTotal: Math.max(0, total - discount),
-        };
-    }
+    const percent = promo.percent;
+    const discount = Math.floor((total * percent) / 100);
 
-    return { label: "Промокод", discount: 0, newTotal: total };
+    return {
+        label: `Скидка ${percent}%`,
+        discount,
+        newTotal: Math.max(0, total - discount),
+    };
 }
 
 type PromoState =
@@ -257,7 +249,10 @@ export default function SignupDialog({
         }
 
         if (isPromoUsedOnThisDevice(code)) {
-            setPromo({ status: "bad", message: "Этот промокод уже был использован на этом устройстве" });
+            setPromo({
+                status: "bad",
+                message: "Этот промокод уже был использован на этом устройстве",
+            });
             return;
         }
 
@@ -266,8 +261,6 @@ export default function SignupDialog({
             promo: found,
             ticketPrice,
             total,
-            mode,
-            seatsNum,
         });
 
         setPromo({
@@ -321,10 +314,14 @@ export default function SignupDialog({
             });
 
             const json = await res.json().catch(() => ({} as any));
-            if (!res.ok || !json?.ok) throw new Error(json?.error || "Не удалось отправить");
+            if (!res.ok || !json?.ok) {
+                throw new Error(json?.error || "Не удалось отправить");
+            }
 
             if (json?.paymentUrl && typeof json.paymentUrl === "string") {
-                if (promo.status === "ok") markPromoUsedOnThisDevice(promo.code);
+                if (promo.status === "ok") {
+                    markPromoUsedOnThisDevice(promo.code);
+                }
                 window.location.href = json.paymentUrl;
                 return;
             }
@@ -345,7 +342,7 @@ export default function SignupDialog({
         !!mode &&
         !!ticket &&
         !!name.trim() &&
-        (!!contact.trim() || !!email.trim()) &&
+        !!email.trim() &&
         (mode !== "team" || seatsNum > 0) &&
         (!allowsFaction || !!faction) &&
         agreePrivacy &&
@@ -392,7 +389,8 @@ export default function SignupDialog({
                             >
                                 <div className="text-lg font-semibold">Зарегистрировать команду</div>
                                 <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                    Вы приходите <span className="text-zinc-50">своей компанией</span>. Укажи количество участников и (по желанию) название команды.
+                                    Вы приходите <span className="text-zinc-50">своей компанией</span>. Укажи количество участников и
+                                    (по желанию) название команды.
                                 </div>
                                 <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-zinc-50">
                                     Выбрать <span className="opacity-70 group-hover:translate-x-0.5 transition">→</span>
@@ -409,8 +407,8 @@ export default function SignupDialog({
                             >
                                 <div className="text-lg font-semibold">Прийти одному</div>
                                 <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                    Это классная возможность <span className="text-zinc-50">познакомиться с новыми людьми</span>: мы аккуратно посадим вас к другим игрокам,
-                                    чтобы было комфортно, интересно и легко найти «своих».
+                                    Это классная возможность <span className="text-zinc-50">познакомиться с новыми людьми</span>: мы
+                                    аккуратно посадим вас к другим игрокам, чтобы было комфортно, интересно и легко найти «своих».
                                 </div>
                                 <div className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-zinc-50">
                                     Выбрать <span className="opacity-70 group-hover:translate-x-0.5 transition">→</span>
@@ -450,8 +448,8 @@ export default function SignupDialog({
                                                         <div className="text-base font-semibold">{t.title}</div>
                                                         {t.badge ? (
                                                             <span className="text-xs rounded-full border border-zinc-800/80 bg-zinc-950/60 px-2 py-0.5 text-zinc-200/80">
-                                                                {t.badge}
-                                                            </span>
+                                {t.badge}
+                              </span>
                                                         ) : null}
                                                     </div>
 
@@ -506,8 +504,8 @@ export default function SignupDialog({
                                     <div>
                                         <span className="text-zinc-200/60">Билет: </span>
                                         <span className="text-zinc-50 font-medium">
-                                            {ticket ? `${ticketMeta[ticket].title} — ${ticketMeta[ticket].price} ₽/чел` : "-"}
-                                        </span>
+                      {ticket ? `${ticketMeta[ticket].title} — ${ticketMeta[ticket].price} ₽/чел` : "-"}
+                    </span>
                                     </div>
 
                                     {promo.status === "ok" ? (
@@ -552,9 +550,11 @@ export default function SignupDialog({
                             </div>
 
                             <div>
-                                <div className="text-sm text-zinc-200/80">Email для билета (рекомендуем)</div>
+                                <div className="text-sm text-zinc-200/80">Email для билета и чека</div>
                                 <Input className="mt-2" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@mail.com" />
-                                <div className="mt-2 text-xs text-zinc-200/60">На этот email можно автоматически отправлять билет и информацию по игре.</div>
+                                <div className="mt-2 text-xs text-zinc-200/60">
+                                    Для оплаты нужен корректный email: на него придут билет и кассовый чек.
+                                </div>
                             </div>
 
                             {mode === "team" && (
@@ -628,10 +628,10 @@ export default function SignupDialog({
                                 <div className="mt-3 text-sm text-zinc-200/80">
                                     <span className="text-zinc-200/60">Сумма: </span>
                                     <span className="text-zinc-50 font-medium">
-                                        {ticket
-                                            ? `${ticketMeta[ticket].price} ₽ × ${mode === "team" ? seatsNum : 1} = ${total} ₽`
-                                            : "-"}
-                                    </span>
+                    {ticket
+                        ? `${ticketMeta[ticket].price} ₽ × ${mode === "team" ? seatsNum : 1} = ${total} ₽`
+                        : "-"}
+                  </span>
                                 </div>
 
                                 <div className="mt-4 rounded-xl border border-zinc-800/70 bg-zinc-950/30 p-3">
@@ -674,7 +674,7 @@ export default function SignupDialog({
 
                                     <div className="mt-2 text-xs text-zinc-200/55 leading-relaxed">
                                         Промокод не списывается при вводе. Он блокируется для повторного использования на этом устройстве после отправки заявки
-                                        (если откроется ссылка на оплату).
+                                        и перехода к оплате.
                                     </div>
                                 </div>
                             </div>
@@ -691,12 +691,12 @@ export default function SignupDialog({
                                             className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
                                         />
                                         <span className="leading-relaxed">
-                                            Я ознакомился с{" "}
+                      Я ознакомился с{" "}
                                             <a className="underline hover:text-zinc-50" href="/privacy" target="_blank" rel="noreferrer">
-                                                Политикой конфиденциальности
-                                            </a>
-                                            .
-                                        </span>
+                        Политикой конфиденциальности
+                      </a>
+                      .
+                    </span>
                                     </label>
 
                                     <label className="flex items-start gap-3">
@@ -707,12 +707,12 @@ export default function SignupDialog({
                                             className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
                                         />
                                         <span className="leading-relaxed">
-                                            Я даю{" "}
+                      Я даю{" "}
                                             <a className="underline hover:text-zinc-50" href="/consent" target="_blank" rel="noreferrer">
-                                                согласие на обработку персональных данных
-                                            </a>
-                                            .
-                                        </span>
+                        согласие на обработку персональных данных
+                      </a>
+                      .
+                    </span>
                                     </label>
 
                                     <label className="flex items-start gap-3">
@@ -723,12 +723,12 @@ export default function SignupDialog({
                                             className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
                                         />
                                         <span className="leading-relaxed">
-                                            Я ознакомился с{" "}
+                      Я ознакомился с{" "}
                                             <a className="underline hover:text-zinc-50" href="/offer" target="_blank" rel="noreferrer">
-                                                Публичной офертой
-                                            </a>
-                                            .
-                                        </span>
+                        Публичной офертой
+                      </a>
+                      .
+                    </span>
                                     </label>
                                 </div>
 
