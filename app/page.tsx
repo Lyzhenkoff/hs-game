@@ -41,7 +41,7 @@ export default function Home() {
         </AnimatedSection>
           <AnimatedSection id="calendar">
           <CalendarPoster />
-              <FactionsSection />
+              {/*<FactionsSection />*/}
               <TestimonialsSection />
               <GallerySection />
           </AnimatedSection>

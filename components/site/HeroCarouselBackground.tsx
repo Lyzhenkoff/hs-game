@@ -16,7 +16,7 @@ export default function HeroBanner() {
     return (
         <>
             <section className="relative overflow-hidden bg-black text-white">
-                <div className="absolute inset-0 bg-[url('/gallery/ПОСТЕР.png')] bg-cover bg-center opacity-30" />
+                <div className="absolute inset-0 bg-[url('public/gallery/poster.png')] bg-cover bg-center opacity-30" />
                 <div className="absolute inset-0 bg-black/60" />
 
                 <div className="relative mx-auto max-w-6xl px-6 py-28 md:py-36">
