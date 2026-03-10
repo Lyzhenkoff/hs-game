@@ -19,18 +19,18 @@ export async function POST(req: Request) {
 
         const {
             eventTitle,
-                eventDate,
-                city,
-                mode,
-                ticket,
-                seats,
-                name,
-                contact,
-                email,
-                message,
-                promoCode,
-                teamName,
-                faction,
+            eventDate,
+            city,
+            mode,
+            ticket,
+            seats,
+            name,
+            contact,
+            email,
+            message,
+            promoCode,
+            teamName,
+            faction,
         } = data as {
             eventTitle: string;
             eventDate?: string;
