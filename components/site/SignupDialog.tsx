@@ -67,7 +67,7 @@ const factions = [
 type PromoKind = "FREE_ONE_TICKET" | "PERCENT";
 type PromoConfig =
     | { code: string; kind: "FREE_ONE_TICKET" }
-    | { code: string; kind: "PERCENT"; percent: 10 | 15 };
+    | { code: string; kind: "PERCENT"; percent: 10 | 15 | 95 };
 
 const PROMOS: PromoConfig[] = [
     { code: "DR-HS-01hg322", kind: "FREE_ONE_TICKET" },
@@ -88,6 +88,7 @@ const PROMOS: PromoConfig[] = [
     { code: "MEM-FREE-08", kind: "FREE_ONE_TICKET" },
 
     { code: "MEM-15", kind: "PERCENT", percent: 15 },
+    { code: "admin5", kind: "PERCENT", percent: 95 },
 
     { code: "MEM-10-01", kind: "PERCENT", percent: 10 },
     { code: "MEM-10-02", kind: "PERCENT", percent: 10 },
