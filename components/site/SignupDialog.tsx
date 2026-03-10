@@ -75,6 +75,7 @@ const PROMOS: PromoConfig[] = [
     { code: "DR-HS-04", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-05", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-06", kind: "FREE_ONE_TICKET" },
+    { code: "admin-001", kind: "FREE_ONE_TICKET" },
 
     { code: "MEM-FREE-01", kind: "FREE_ONE_TICKET" },
     { code: "MEM-FREE-02", kind: "FREE_ONE_TICKET" },
