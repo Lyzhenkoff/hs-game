@@ -25,7 +25,7 @@ export async function createPayment(params: {
         (params.email || "").trim() ||
         String(params.metadata?.email || "").trim();
 
-    if (!customerEmail) {
+    if (!customerEmail || !customerEmail.includes("@")) {
         throw new Error("Для оплаты нужен корректный email");
     }
 
@@ -49,12 +49,14 @@ export async function createPayment(params: {
             items: [
                 {
                     description: params.description.slice(0, 128),
-                    quantity: "1.00",
+                    quantity: 1.0,
                     amount: {
                         value: amountValue,
                         currency: "RUB",
                     },
                     vat_code: 1,
+                    payment_mode: "full_payment",
+                    payment_subject: "service",
                 },
             ],
         },
@@ -95,7 +97,6 @@ export async function getPayment(paymentId: string) {
     });
 
     const json = await res.json();
-
     if (!res.ok) {
         throw new Error(json?.description || "YooKassa getPayment failed");
     }
