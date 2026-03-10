@@ -6,12 +6,12 @@ import { useState } from "react";
 import Link from "next/link";
 
 const photos = [
-    "/gallery/01.png",
-    "/gallery/02.png",
-    "/gallery/03.png",
-    "/gallery/04.png",
-    "/gallery/01.png",
-    "/gallery/01.png",
+    "/gallery/01.jpg",
+    "/gallery/02.jpg",
+    "/gallery/03.jpg",
+    "/gallery/04.jpg",
+    "/gallery/05.jpg",
+    "/gallery/06.jpg",
 ];
 
 export default function GallerySection() {
