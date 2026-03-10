@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 
 export type Promo =
     | { code: string; type: "FREE_ONE"; status: "new" | "reserved" | "used"; reservedPaymentId?: string; usedAt?: string }
-    | { code: string; type: "PERCENT"; percent: 10 | 15 | 95; status: "new" | "reserved" | "used"; reservedPaymentId?: string; usedAt?: string };
+    | { code: string; type: "PERCENT"; percent: number; status: "new" | "reserved" | "used"; reservedPaymentId?: string; usedAt?: string };
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const PROMO_FILE = path.join(DATA_DIR, "promos.json");
@@ -20,7 +20,6 @@ function ensureFile() {
             { code: "DR-HS-04", type: "FREE_ONE", status: "new" },
             { code: "DR-HS-05", type: "FREE_ONE", status: "new" },
             { code: "DR-HS-06", type: "FREE_ONE", status: "new" },
-            { code: "admin5", kind: "PERCENT", percent: 95 },
 
             // 8 MEM free
             { code: "MEM-FREE-01", type: "FREE_ONE", status: "new" },
@@ -34,6 +33,7 @@ function ensureFile() {
 
             // 1 MEM 15%
             { code: "MEM-15", type: "PERCENT", percent: 15, status: "new" },
+            { code: "admin5", type: "PERCENT", percent: 95, status: "new" },
 
             // 3 MEM 10%
             { code: "MEM-10-01", type: "PERCENT", percent: 10, status: "new" },
