@@ -181,7 +181,8 @@ export default function SignupDialog({
 
     const seatsNum = useMemo(() => {
         const n = Number.parseInt(seats || "1", 10);
-        return Number.isFinite(n) && n > 0 ? n : 1;
+        if (!Number.isFinite(n) || n < 1) return 1;
+        return Math.min(n, 8);
     }, [seats]);
 
     const total = useMemo(() => {
@@ -562,12 +563,19 @@ export default function SignupDialog({
                                     <div>
                                         <div className="text-sm text-zinc-200/80">Количество участников</div>
                                         <Input
-                                            className="mt-2"
                                             value={seats}
-                                            onChange={(e) => setSeats(e.target.value)}
-                                            placeholder="Например: 8"
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/\D/g, "");
+                                                if (Number(val) <= 8) {
+                                                    setSeats(val);
+                                                }
+                                            }}
+                                            placeholder="Максимум 8"
                                             inputMode="numeric"
                                         />
+                                        <div className="text-xs text-zinc-200/60 mt-1">
+                                            Максимальный размер команды — 8 человек
+                                        </div>
                                     </div>
                                     <div>
                                         <div className="text-sm text-zinc-200/80">Название команды (опционально)</div>
