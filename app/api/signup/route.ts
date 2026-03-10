@@ -19,16 +19,18 @@ export async function POST(req: Request) {
 
         const {
             eventTitle,
-            eventDate,
-            city,
-            mode,
-            ticket,
-            seats,
-            name,
-            contact,
-            email,
-            message,
-            promoCode,
+                eventDate,
+                city,
+                mode,
+                ticket,
+                seats,
+                name,
+                contact,
+                email,
+                message,
+                promoCode,
+                teamName,
+                faction,
         } = data as {
             eventTitle: string;
             eventDate?: string;
@@ -41,6 +43,8 @@ export async function POST(req: Request) {
             email?: string;
             message?: string;
             promoCode?: string;
+            teamName?: string;
+            faction?: string;
         };
 
         if (!eventTitle || !mode || !ticket || !name) {
@@ -116,6 +120,9 @@ export async function POST(req: Request) {
                 baseTotal,
                 promoDiscount,
                 promoLabel,
+                teamName: teamName || "",
+                faction: faction || "",
+                message: message || "",
             },
         });
 

@@ -83,9 +83,9 @@ type PromoConfig =
 
 const PROMOS: PromoConfig[] = [
     // 6 ДР (1 билет бесплатно)
-    { code: "DR-HS-01", kind: "FREE_ONE_TICKET" },
-    { code: "DR-HS-02", kind: "FREE_ONE_TICKET" },
-    { code: "DR-HS-03", kind: "FREE_ONE_TICKET" },
+    { code: "DR-HS-01hg322", kind: "FREE_ONE_TICKET" },
+    { code: "DR-HS-02fd031", kind: "FREE_ONE_TICKET" },
+    { code: "DR-HS-03jde3402", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-04", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-05", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-06", kind: "FREE_ONE_TICKET" },
@@ -203,7 +203,6 @@ export default function SignupDialog({
     const [promoInput, setPromoInput] = useState("");
     const [promo, setPromo] = useState<PromoState>({ status: "idle" });
 
-    const [payNow, setPayNow] = useState(true);
     const [status, setStatus] = useState<"idle" | "sending" | "ok" | "error">("idle");
     const [errorText, setErrorText] = useState("");
 
@@ -249,7 +248,6 @@ export default function SignupDialog({
         setPromoInput("");
         setPromo({ status: "idle" });
 
-        setPayNow(true);
         setStatus("idle");
         setErrorText("");
 
@@ -344,7 +342,6 @@ export default function SignupDialog({
                 email,
                 message,
 
-                payNow,
                 source: "site",
             };
 
@@ -360,16 +357,13 @@ export default function SignupDialog({
             // Если бэкенд вернул ссылку на оплату — открываем
             // и ТУТ “жжём” промокод на этом устройстве (как ты просил — после действия пользователя)
             if (json?.paymentUrl && typeof json.paymentUrl === "string") {
-                window.open(json.paymentUrl, "_blank", "noopener,noreferrer");
-
-                // считаем, что пользователь пошёл платить => блокируем повтор
                 if (promo.status === "ok") markPromoUsedOnThisDevice(promo.code);
-            } else {
-                // Если оплаты “сразу” нет, но ты хочешь сжигать промо при отправке заявки — включи это:
-                // if (promo.status === "ok") markPromoUsedOnThisDevice(promo.code);
+                window.location.href = json.paymentUrl;
+                return;
             }
 
             setStatus("ok");
+
         } catch (e: any) {
             setStatus("error");
             setErrorText(e?.message || "Ошибка сети");
@@ -665,25 +659,10 @@ export default function SignupDialog({
                             </div>
 
                             {/* Payment + Promo */}
-                            <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
-                                <div className="text-sm font-medium text-zinc-50">Оплата и билет</div>
-                                <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                    Можно оплатить сразу — и после оплаты автоматически получить билет (на email/в Telegram). Либо отправить заявку, и мы пришлём ссылку на оплату вручную.
-                                </div>
-
-                                <div className="mt-4 flex items-start gap-3">
-                                    <input
-                                        id="payNow"
-                                        type="checkbox"
-                                        checked={payNow}
-                                        onChange={(e) => setPayNow(e.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
-                                    />
-                                    <label htmlFor="payNow" className="text-sm text-zinc-200/80 leading-relaxed">
-                                        Хочу получить ссылку на оплату сразу после отправки заявки
-                                        <div className="text-xs text-zinc-200/60 mt-1">(Если на бэкенде настроено создание paymentUrl — откроется автоматически.)</div>
-                                    </label>
-                                </div>
+                            <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
+                                После отправки формы ты сразу перейдёшь на страницу оплаты YooKassa.
+                                После успешной оплаты билет автоматически придёт на email.
+                            </div>
 
                                 <div className="mt-3 text-sm text-zinc-200/80">
                                     <span className="text-zinc-200/60">Сумма: </span>

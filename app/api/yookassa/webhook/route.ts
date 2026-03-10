@@ -1,84 +1,101 @@
 import { NextResponse } from "next/server";
 import { getPayment } from "@/lib/yookassa";
-import { markPromoUsedByPayment, releasePromoByPayment, makeTicketId } from "@/lib/promoStore";
+import {
+    markPromoUsedByPayment,
+    releasePromoByPayment,
+    makeTicketId,
+} from "@/lib/promoStore";
 import { sendTelegram, sendTicketEmail } from "@/lib/notify";
 
 export async function POST(req: Request) {
     try {
-        // простая защита URL
         const url = new URL(req.url);
         const secret = url.searchParams.get("secret");
-        if (!process.env.YOOKASSA_WEBHOOK_SECRET || secret !== process.env.YOOKASSA_WEBHOOK_SECRET) {
+
+        if (
+            !process.env.YOOKASSA_WEBHOOK_SECRET ||
+            secret !== process.env.YOOKASSA_WEBHOOK_SECRET
+        ) {
             return NextResponse.json({ ok: false }, { status: 401 });
         }
 
         const body = await req.json();
-
         const event = body?.event;
         const paymentId = body?.object?.id;
 
-        if (!event || !paymentId) return NextResponse.json({ ok: true }); // не валим ЮKassa
+        if (!event || !paymentId) {
+            return NextResponse.json({ ok: true });
+        }
 
-        // Подтверждаем платёж через API (важно!)
         const payment = await getPayment(paymentId);
-
         const status = payment?.status;
         const meta = payment?.metadata || {};
 
         if (event === "payment.succeeded" && status === "succeeded") {
-            // ТРАТИМ промокод (если был)
-            const promoCode = (meta.promo_code || "").toString().trim();
+            const promoCode = String(meta.promo_code || "").trim();
+
             if (promoCode) {
-                const u = markPromoUsedByPayment(paymentId);
-                if (!u.ok) {
-                    // не валим webhook, просто сообщим
-                    await sendTelegram(`⚠️ Оплата прошла, но промокод не найден для payment ${paymentId}`);
+                const reserveResult = markPromoUsedByPayment(paymentId);
+                if (!reserveResult.ok) {
+                    await sendTelegram(
+                        `⚠️ Оплата прошла, но промокод не найден для payment ${paymentId}`
+                    );
                 }
             }
 
-            const ticketId = (meta.ticket_id || makeTicketId()).toString();
-            const email = (meta.email || "").toString();
-            const name = (meta.name || "").toString();
-            const eventTitle = (meta.eventTitle || "").toString();
-            const eventDate = (meta.eventDate || "").toString();
-            const city = (meta.city || "").toString();
+            const ticketId = String(meta.ticket_id || makeTicketId());
+            const email = String(meta.email || "").trim();
+            const name = String(meta.name || "").trim();
+            const contact = String(meta.contact || "").trim();
+            const eventTitle = String(meta.eventTitle || "").trim();
+            const eventDate = String(meta.eventDate || "").trim();
+            const city = String(meta.city || "").trim();
+            const teamName = String(meta.teamName || "").trim();
+            const faction = String(meta.faction || "").trim();
+            const message = String(meta.message || "").trim();
             const qty = Number(meta.qty || 1);
-            const amount = payment?.amount?.value;
+            const ticket = String(meta.ticket || "").trim();
+            const amount = String(payment?.amount?.value || "");
 
-            // TG тебе
             await sendTelegram(
-                `✅ <b>Оплата успешна</b>\n` +
-                `Игра: <b>${eventTitle}</b>\n` +
-                `${eventDate ? `Дата: ${eventDate}\n` : ""}` +
-                `${city ? `Город: ${city}\n` : ""}` +
-                `Имя: <b>${name}</b>\n` +
-                `${email ? `Email: ${email}\n` : ""}` +
-                `Кол-во: <b>${qty}</b>\n` +
-                `Сумма: <b>${amount} ₽</b>\n` +
-                `${promoCode ? `Промо списан: <b>${promoCode}</b>\n` : ""}` +
-                `TicketID: <code>${ticketId}</code>\n` +
-                `Payment: <code>${paymentId}</code>`
+                [
+                    "✅ Оплата успешна",
+                    eventTitle ? `Игра: ${eventTitle}` : "",
+                    eventDate ? `Дата: ${eventDate}` : "",
+                    city ? `Город: ${city}` : "",
+                    name ? `Имя: ${name}` : "",
+                    contact ? `Контакт: ${contact}` : "",
+                    email ? `Email: ${email}` : "",
+                    ticket ? `Тариф: ${ticket}` : "",
+                    `Кол-во: ${qty}`,
+                    amount ? `Сумма: ${amount} ₽` : "",
+                    teamName ? `Команда: ${teamName}` : "",
+                    faction ? `Фракция: ${faction}` : "",
+                    promoCode ? `Промокод: ${promoCode}` : "",
+                    message ? `Комментарий: ${message}` : "",
+                    `Ticket ID: ${ticketId}`,
+                    `Payment ID: ${paymentId}`,
+                ]
+                    .filter(Boolean)
+                    .join("\n")
             );
 
-            // Email игроку — “билет”
             if (email) {
-                const html =
-                    `<div style="font-family:Arial,sans-serif;line-height:1.5">` +
-                    `<h2>Ваш билет на HS Game</h2>` +
-                    `<p><b>Игра:</b> ${escapeHtml(eventTitle)}</p>` +
-                    (eventDate ? `<p><b>Дата:</b> ${escapeHtml(eventDate)}</p>` : "") +
-                    (city ? `<p><b>Город:</b> ${escapeHtml(city)}</p>` : "") +
-                    `<p><b>Участник:</b> ${escapeHtml(name)}</p>` +
-                    `<p><b>Количество:</b> ${qty}</p>` +
-                    `<p><b>Номер билета:</b> <code>${escapeHtml(ticketId)}</code></p>` +
-                    `<p>Покажите номер билета организатору (или это письмо).</p>` +
-                    `<hr/>` +
-                    `<p style="color:#666;font-size:12px">Если письмо попало в спам — отметьте как “Не спам”.</p>` +
-                    `</div>`;
+                const html = buildTicketHtml({
+                    ticketId,
+                    name,
+                    eventTitle,
+                    eventDate,
+                    city,
+                    qty,
+                    ticket,
+                    teamName,
+                    faction,
+                });
 
                 await sendTicketEmail({
                     to: email,
-                    subject: `Билет HS Game • ${eventTitle}`,
+                    subject: `Билет HS Game${eventTitle ? ` • ${eventTitle}` : ""}`,
                     html,
                 });
             }
@@ -86,7 +103,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ ok: true });
         }
 
-        // Если платеж отменён — можно разморозить промо, чтобы оно снова работало
         if (event === "payment.canceled" || status === "canceled") {
             await releasePromoByPayment(paymentId);
             return NextResponse.json({ ok: true });
@@ -94,16 +110,84 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ ok: true });
     } catch {
-        // webhook нельзя “ронять”
         return NextResponse.json({ ok: true });
     }
 }
 
-function escapeHtml(s: string) {
-    return s
+function escapeHtml(value: string) {
+    return value
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+        .replaceAll("'", "&#39;");
+}
+
+function row(label: string, value?: string | number) {
+    if (value === undefined || value === null || value === "") return "";
+    return `
+    <tr>
+      <td style="padding:8px 0;color:#a1a1aa;vertical-align:top;">${escapeHtml(
+        label
+    )}</td>
+      <td style="padding:8px 0;color:#ffffff;vertical-align:top;">${escapeHtml(
+        String(value)
+    )}</td>
+    </tr>
+  `;
+}
+
+function buildTicketHtml(params: {
+    ticketId: string;
+    name: string;
+    eventTitle: string;
+    eventDate?: string;
+    city?: string;
+    qty?: number;
+    ticket?: string;
+    teamName?: string;
+    faction?: string;
+}) {
+    return `
+    <div style="background:#0a0a0a;padding:32px;font-family:Arial,sans-serif;color:#fff;">
+      <div style="max-width:640px;margin:0 auto;background:#111111;border:1px solid #27272a;border-radius:20px;padding:28px;">
+        <div style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#a1a1aa;">
+          Ход Судьбы
+        </div>
+
+        <h1 style="margin:12px 0 8px;font-size:28px;line-height:1.2;">
+          Ваш билет
+        </h1>
+
+        <p style="margin:0 0 20px;color:#d4d4d8;line-height:1.6;">
+          Спасибо за оплату. Сохраните это письмо и покажите билет организатору на входе.
+        </p>
+
+        <table style="width:100%;border-collapse:collapse;">
+          ${row("Игра", params.eventTitle)}
+          ${row("Дата", params.eventDate)}
+          ${row("Город", params.city)}
+          ${row("Участник", params.name)}
+          ${row("Количество мест", params.qty)}
+          ${row("Тариф", params.ticket)}
+          ${row("Команда", params.teamName)}
+          ${row("Фракция", params.faction)}
+          ${row("Номер билета", params.ticketId)}
+        </table>
+
+        <div style="margin-top:24px;padding:16px;border-radius:14px;background:#18181b;border:1px solid #27272a;">
+          <div style="font-size:12px;color:#a1a1aa;text-transform:uppercase;letter-spacing:.12em;">
+            Ticket ID
+          </div>
+          <div style="font-size:22px;font-weight:700;margin-top:6px;">
+            ${escapeHtml(params.ticketId)}
+          </div>
+        </div>
+
+        <p style="margin:20px 0 0;color:#a1a1aa;font-size:13px;line-height:1.6;">
+          Если письма нет во входящих, проверьте папку “Спам”.
+        </p>
+      </div>
+    </div>
+  `;
 }
