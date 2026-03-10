@@ -63,26 +63,12 @@ const factions = [
     "Артисты",
 ];
 
-/**
- * ==========================
- * ПРОМОКОДЫ (в коде)
- * ==========================
- * Требования:
- * - 6 промокодов для ДР: содержат "DR" и дают 1 бесплатный билет
- * - 8 промокодов: содержат "MEM" и дают 1 бесплатный билет
- * - 1 промокод: содержит "MEM" и даёт 15%
- * - 3 промокода: содержат "MEM" и дают 10%
- *
- * Важно: "одноразовый" тут реализован через localStorage (на устройстве).
- */
-
 type PromoKind = "FREE_ONE_TICKET" | "PERCENT";
 type PromoConfig =
     | { code: string; kind: "FREE_ONE_TICKET" }
     | { code: string; kind: "PERCENT"; percent: 10 | 15 };
 
 const PROMOS: PromoConfig[] = [
-    // 6 ДР (1 билет бесплатно)
     { code: "DR-HS-01hg322", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-02fd031", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-03jde3402", kind: "FREE_ONE_TICKET" },
@@ -90,7 +76,6 @@ const PROMOS: PromoConfig[] = [
     { code: "DR-HS-05", kind: "FREE_ONE_TICKET" },
     { code: "DR-HS-06", kind: "FREE_ONE_TICKET" },
 
-    // 8 MEM (1 билет бесплатно)
     { code: "MEM-FREE-01", kind: "FREE_ONE_TICKET" },
     { code: "MEM-FREE-02", kind: "FREE_ONE_TICKET" },
     { code: "MEM-FREE-03", kind: "FREE_ONE_TICKET" },
@@ -100,10 +85,8 @@ const PROMOS: PromoConfig[] = [
     { code: "MEM-FREE-07", kind: "FREE_ONE_TICKET" },
     { code: "MEM-FREE-08", kind: "FREE_ONE_TICKET" },
 
-    // 1 MEM 15%
     { code: "MEM-15", kind: "PERCENT", percent: 15 },
 
-    // 3 MEM 10%
     { code: "MEM-10-01", kind: "PERCENT", percent: 10 },
     { code: "MEM-10-02", kind: "PERCENT", percent: 10 },
     { code: "MEM-10-03", kind: "PERCENT", percent: 10 },
@@ -129,7 +112,7 @@ function markPromoUsedOnThisDevice(code: string) {
     try {
         localStorage.setItem(promoStorageKey(code), "1");
     } catch {
-        // ignore
+        //
     }
 }
 
@@ -140,14 +123,9 @@ function calcPromoDiscount(opts: {
     mode: Mode;
     seatsNum: number;
 }) {
-    const { promo, ticketPrice, total, mode, seatsNum } = opts;
-
-    // Сколько билетов "в сумме": в team = seats, в solo = 1
-    const qty = mode === "team" ? seatsNum : 1;
+    const { promo, ticketPrice, total } = opts;
 
     if (promo.kind === "FREE_ONE_TICKET") {
-        // 1 бесплатный билет => скидка = цена одного билета
-        // но не больше total
         const discount = Math.min(ticketPrice, total);
         return {
             label: "1 билет бесплатно",
@@ -193,8 +171,8 @@ export default function SignupDialog({
     const [ticket, setTicket] = useState<Ticket | null>(null);
 
     const [name, setName] = useState("");
-    const [contact, setContact] = useState(""); // phone or telegram
-    const [email, setEmail] = useState(""); // для билета
+    const [contact, setContact] = useState("");
+    const [email, setEmail] = useState("");
     const [seats, setSeats] = useState("1");
     const [teamName, setTeamName] = useState("");
     const [faction, setFaction] = useState("");
@@ -217,19 +195,15 @@ export default function SignupDialog({
         return base * (mode === "team" ? seatsNum : 1);
     }, [ticket, mode, seatsNum]);
 
-    // Выбор фракции доступен только на 2000+ (2000 и premium)
     const allowsFaction = ticket === "2000" || ticket === "premium";
 
-    // Пересчитываем “к оплате” с учётом промо
     const payableTotal = useMemo(() => {
         if (promo.status === "ok") return promo.newTotal;
         return total;
     }, [promo, total]);
 
-    // Если поменяли билет/режим/кол-во — сбрасываем промо, чтобы не было странных пересчётов
     useEffect(() => {
         setPromo({ status: "idle" });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ticket, mode, seatsNum]);
 
     function resetAll() {
@@ -279,7 +253,6 @@ export default function SignupDialog({
             return;
         }
 
-        // проверяем “одноразовость” на этом устройстве
         if (isPromoUsedOnThisDevice(code)) {
             setPromo({ status: "bad", message: "Этот промокод уже был использован на этом устройстве" });
             return;
@@ -323,25 +296,18 @@ export default function SignupDialog({
                 ticket,
                 ticketTitle: ticketMeta[ticket].title,
                 ticketPrice: ticketMeta[ticket].price,
-
-                // ВАЖНО: отправляем сумму "к оплате" (с учётом промо)
                 total: payableTotal,
-
-                // исходная сумма + промо-детали (чтобы в тг было видно)
                 originalTotal: total,
                 promoCode: promo.status === "ok" ? promo.code : "",
                 promoLabel: promo.status === "ok" ? promo.label : "",
                 promoDiscount: promo.status === "ok" ? promo.discount : 0,
-
                 seats: mode === "team" ? String(seatsNum) : "1",
                 teamName: mode === "team" ? teamName : "",
                 faction: allowsFaction ? faction : "",
-
                 name,
                 contact,
                 email,
                 message,
-
                 source: "site",
             };
 
@@ -354,8 +320,6 @@ export default function SignupDialog({
             const json = await res.json().catch(() => ({} as any));
             if (!res.ok || !json?.ok) throw new Error(json?.error || "Не удалось отправить");
 
-            // Если бэкенд вернул ссылку на оплату — открываем
-            // и ТУТ “жжём” промокод на этом устройстве (как ты просил — после действия пользователя)
             if (json?.paymentUrl && typeof json.paymentUrl === "string") {
                 if (promo.status === "ok") markPromoUsedOnThisDevice(promo.code);
                 window.location.href = json.paymentUrl;
@@ -363,7 +327,6 @@ export default function SignupDialog({
             }
 
             setStatus("ok");
-
         } catch (e: any) {
             setStatus("error");
             setErrorText(e?.message || "Ошибка сети");
@@ -389,14 +352,12 @@ export default function SignupDialog({
     return (
         <Dialog open={open} onOpenChange={(v) => (v ? onOpenChange(true) : close())}>
             <DialogContent className="bg-zinc-950/95 border border-zinc-800 text-zinc-100 sm:max-w-[720px] max-h-[90vh] overflow-y-auto overscroll-contain">
-                {/* Фон */}
                 <div className="pointer-events-none absolute inset-0 -z-10">
                     <div className="absolute -top-28 -left-28 h-80 w-80 rounded-full bg-emerald-500/18 blur-3xl" />
                     <div className="absolute -bottom-28 -right-28 h-80 w-80 rounded-full bg-amber-400/16 blur-3xl" />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_45%),radial-gradient(circle_at_80%_70%,rgba(255,255,255,0.06),transparent_50%)]" />
                 </div>
 
-                {/* Header */}
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <div className="text-xs tracking-wide text-zinc-200/60">Шаг {step} / 3</div>
@@ -416,7 +377,6 @@ export default function SignupDialog({
                 <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-amber-300/30 to-transparent" />
 
                 <div className="mt-6">
-                    {/* STEP 1 */}
                     {step === 1 && (
                         <div className="grid gap-4 md:grid-cols-2">
                             <button
@@ -456,7 +416,6 @@ export default function SignupDialog({
                         </div>
                     )}
 
-                    {/* STEP 2 */}
                     {step === 2 && (
                         <div className="space-y-3">
                             <div className="text-sm text-zinc-200/70">
@@ -488,8 +447,8 @@ export default function SignupDialog({
                                                         <div className="text-base font-semibold">{t.title}</div>
                                                         {t.badge ? (
                                                             <span className="text-xs rounded-full border border-zinc-800/80 bg-zinc-950/60 px-2 py-0.5 text-zinc-200/80">
-                                {t.badge}
-                              </span>
+                                                                {t.badge}
+                                                            </span>
                                                         ) : null}
                                                     </div>
 
@@ -532,10 +491,8 @@ export default function SignupDialog({
                         </div>
                     )}
 
-                    {/* STEP 3 */}
                     {step === 3 && (
                         <div className="space-y-5">
-                            {/* Summary */}
                             <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
                                 <div className="text-sm text-zinc-200/70">Вы выбрали</div>
                                 <div className="mt-2 grid gap-2 text-sm">
@@ -546,8 +503,8 @@ export default function SignupDialog({
                                     <div>
                                         <span className="text-zinc-200/60">Билет: </span>
                                         <span className="text-zinc-50 font-medium">
-                      {ticket ? `${ticketMeta[ticket].title} — ${ticketMeta[ticket].price} ₽/чел` : "-"}
-                    </span>
+                                            {ticket ? `${ticketMeta[ticket].title} — ${ticketMeta[ticket].price} ₽/чел` : "-"}
+                                        </span>
                                     </div>
 
                                     {promo.status === "ok" ? (
@@ -575,7 +532,6 @@ export default function SignupDialog({
                                 </div>
                             </div>
 
-                            {/* Fields */}
                             <div className="grid gap-3 sm:grid-cols-2">
                                 <div>
                                     <div className="text-sm text-zinc-200/80">Имя</div>
@@ -658,22 +614,23 @@ export default function SignupDialog({
                                 />
                             </div>
 
-                            {/* Payment + Promo */}
-                            <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
-                                После отправки формы ты сразу перейдёшь на страницу оплаты YooKassa.
-                                После успешной оплаты билет автоматически придёт на email.
-                            </div>
+                            <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
+                                <div className="text-sm font-medium text-zinc-50">Оплата</div>
+
+                                <div className="mt-2 text-sm text-zinc-200/75 leading-relaxed">
+                                    После отправки формы ты сразу перейдёшь на страницу оплаты YooKassa.
+                                    После успешной оплаты билет автоматически придёт на email.
+                                </div>
 
                                 <div className="mt-3 text-sm text-zinc-200/80">
                                     <span className="text-zinc-200/60">Сумма: </span>
                                     <span className="text-zinc-50 font-medium">
-                    {ticket
-                        ? `${ticketMeta[ticket].price} ₽ × ${mode === "team" ? seatsNum : 1} = ${total} ₽`
-                        : "-"}
-                  </span>
+                                        {ticket
+                                            ? `${ticketMeta[ticket].price} ₽ × ${mode === "team" ? seatsNum : 1} = ${total} ₽`
+                                            : "-"}
+                                    </span>
                                 </div>
 
-                                {/* ПРОМОКОД */}
                                 <div className="mt-4 rounded-xl border border-zinc-800/70 bg-zinc-950/30 p-3">
                                     <div className="text-sm text-zinc-200/80">Промокод</div>
 
@@ -707,15 +664,18 @@ export default function SignupDialog({
                                             <span className="font-semibold text-zinc-50">{payableTotal} ₽</span>
                                         </div>
                                     )}
-                                    {promo.status === "bad" && <div className="mt-2 text-sm text-red-300/90">{promo.message}</div>}
+
+                                    {promo.status === "bad" && (
+                                        <div className="mt-2 text-sm text-red-300/90">{promo.message}</div>
+                                    )}
 
                                     <div className="mt-2 text-xs text-zinc-200/55 leading-relaxed">
                                         Промокод не списывается при вводе. Он блокируется для повторного использования на этом устройстве после отправки заявки
                                         (если откроется ссылка на оплату).
                                     </div>
                                 </div>
+                            </div>
 
-                            {/* Consents */}
                             <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
                                 <div className="text-sm font-medium text-zinc-50">Согласия</div>
 
@@ -728,12 +688,12 @@ export default function SignupDialog({
                                             className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
                                         />
                                         <span className="leading-relaxed">
-                      Я ознакомился с{" "}
+                                            Я ознакомился с{" "}
                                             <a className="underline hover:text-zinc-50" href="/privacy" target="_blank" rel="noreferrer">
-                        Политикой конфиденциальности
-                      </a>
-                      .
-                    </span>
+                                                Политикой конфиденциальности
+                                            </a>
+                                            .
+                                        </span>
                                     </label>
 
                                     <label className="flex items-start gap-3">
@@ -744,12 +704,12 @@ export default function SignupDialog({
                                             className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
                                         />
                                         <span className="leading-relaxed">
-                      Я даю{" "}
+                                            Я даю{" "}
                                             <a className="underline hover:text-zinc-50" href="/consent" target="_blank" rel="noreferrer">
-                        согласие на обработку персональных данных
-                      </a>
-                      .
-                    </span>
+                                                согласие на обработку персональных данных
+                                            </a>
+                                            .
+                                        </span>
                                     </label>
 
                                     <label className="flex items-start gap-3">
@@ -760,16 +720,18 @@ export default function SignupDialog({
                                             className="mt-1 h-4 w-4 rounded border-zinc-700 bg-zinc-950"
                                         />
                                         <span className="leading-relaxed">
-                      Я ознакомился с{" "}
+                                            Я ознакомился с{" "}
                                             <a className="underline hover:text-zinc-50" href="/offer" target="_blank" rel="noreferrer">
-                        Публичной офертой
-                      </a>
-                      .
-                    </span>
+                                                Публичной офертой
+                                            </a>
+                                            .
+                                        </span>
                                     </label>
                                 </div>
 
-                                <div className="mt-3 text-xs text-zinc-200/60">Без этих согласий мы не сможем принять заявку и подтвердить участие.</div>
+                                <div className="mt-3 text-xs text-zinc-200/60">
+                                    Без этих согласий мы не сможем принять заявку и подтвердить участие.
+                                </div>
                             </div>
 
                             <div className="flex items-center justify-between gap-3">
@@ -778,20 +740,22 @@ export default function SignupDialog({
                                 </Button>
 
                                 <Button className="rounded-xl" onClick={submit} disabled={status === "sending" || !canSubmit}>
-                                    {status === "sending" ? "Отправляю…" : "Отправить заявку"}
+                                    {status === "sending" ? "Отправляю…" : "Перейти к оплате"}
                                 </Button>
                             </div>
 
                             {status === "ok" && (
                                 <div className="text-sm text-emerald-300/90">
-                                    Заявка отправлена ✅ Мы свяжемся с вами для подтверждения.{" "}
-                                    {payNow ? "Если открылась ссылка на оплату — после оплаты пришлём билет." : "Ссылку на оплату пришлём в Telegram."}
+                                    Заявка отправлена ✅ Если оплата не открылась автоматически, напишите нам — мы быстро поможем.
                                 </div>
                             )}
-                            {status === "error" && <div className="text-sm text-red-300/90">Не отправилось: {errorText}</div>}
+
+                            {status === "error" && (
+                                <div className="text-sm text-red-300/90">Не отправилось: {errorText}</div>
+                            )}
 
                             <div className="text-xs text-zinc-200/55 leading-relaxed">
-                                Нажимая «Отправить заявку», вы соглашаетесь на обработку персональных данных для связи и оформления участия.
+                                Нажимая «Перейти к оплате», вы соглашаетесь на обработку персональных данных для связи и оформления участия.
                             </div>
                         </div>
                     )}
