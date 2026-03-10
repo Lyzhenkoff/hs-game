@@ -149,6 +149,7 @@ export async function POST(req: Request) {
             `${email ? `Email: ${email}\n` : ""}` +
             `Билет: <b>${ticket}</b>, кол-во: <b>${qty}</b>\n` +
             `Сумма: <b>${finalTotal} ₽</b>\n` + `Фракция: <b>${faction} ₽</b>\n` +
+            + `Комментарий: <b>${message} ₽</b>\n` +
             `${promo ? `Промо: <b>${promo}</b> (${promoLabel})\n` : ""}` +
             `Payment: <code>${payment.id}</code>`
         );
