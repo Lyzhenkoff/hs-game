@@ -1,7 +1,13 @@
 import Image from "next/image";
 
-const photos = Array.from({ length: 12 }, (_, i) => `/gallery/${(i % 6) + 1}.jpg`);
-
+const photos = [
+    "/gallery/photo1.jpg",
+    "/gallery/photo2.jpg",
+    "/gallery/photo3.jpg",
+    "/gallery/photo4.jpg",
+    "/gallery/photo5.jpg",
+    "/gallery/photo6.jpg",
+];
 export const metadata = {
     title: "Галерея — Ход Судьбы",
 };
