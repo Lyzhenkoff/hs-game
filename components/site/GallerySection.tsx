@@ -7,7 +7,7 @@ import Link from "next/link";
 
 const photos = [
     "/gallery/01.jpg",
-    "/gallery/02.jpg",
+    "/gallery/0101.jpg",
     "/gallery/03.jpg",
     "/gallery/04.jpg",
     "/gallery/05.jpg",
