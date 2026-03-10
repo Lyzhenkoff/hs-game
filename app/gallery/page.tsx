@@ -15,6 +15,11 @@ const photos = [
     "/gallery/photo13.JPG",
     "/gallery/photo14.jpg",
     "/gallery/photo15.jpg",
+    "/gallery/photo16.JPG",
+    "/gallery/photo17.JPG",
+    "/gallery/photo18.JPG",
+    "/gallery/photo19.JPG",
+    "/gallery/photo20.JPG",
 ];
 export const metadata = {
     title: "Галерея — Ход Судьбы",
