@@ -19,7 +19,7 @@ export default function HeroBanner() {
                 <div
                     className="absolute inset-0 bg-cover bg-center opacity-30"
                     style={{ backgroundImage: "url('/gallery/poster.png')" }}
-                />                <div className="absolute inset-0 bg-black/60" />
+                />                <div className="absolute inset-0 bg-black/30" />
 
                 <div className="relative mx-auto max-w-6xl px-6 py-28 md:py-36">
                     <div className="max-w-3xl">
