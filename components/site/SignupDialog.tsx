@@ -714,7 +714,6 @@ export default function SignupDialog({
                                         (если откроется ссылка на оплату).
                                     </div>
                                 </div>
-                            </div>
 
                             {/* Consents */}
                             <div className="rounded-2xl border border-zinc-800/70 bg-zinc-950/40 p-4">
