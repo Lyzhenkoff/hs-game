@@ -8,6 +8,8 @@ import FactionsSection from "@/components/site/FactionsSection";
 import AuthButtons from "@/components/site/AuthButtons";
 import TestimonialsSection from "@/components/site/TestimonialsSection";
 import GallerySection from "@/components/site/GallerySection";
+import { FaTelegram, FaVk } from "react-icons/fa";
+
 
 export default function Home() {
   return (
@@ -126,50 +128,79 @@ export default function Home() {
               <GallerySection />
           </AnimatedSection>
           <RequestGameForm />
-
-
-
           <footer className="mt-24 border-t border-white/10 bg-black text-white">
               <div className="mx-auto max-w-6xl px-5 py-12">
 
-                  {/* Основной блок */}
-                  <div className="flex flex-col gap-6 md:flex-row md:justify-between">
+                  {/* Верхняя часть */}
+                  <div className="flex flex-col gap-10 md:flex-row md:justify-between">
 
+                      {/* Бренд */}
                       <div>
                           <div className="text-lg font-semibold">Ход Судьбы</div>
                           <div className="mt-2 text-sm text-white/60">
                               Иммерсивные игровые события
                           </div>
+
+                          {/* Соцсети */}
+                          <div className="mt-4 flex items-center gap-4 text-white/70">
+
+                              <a
+                                  href="https://vk.com/hodsydby"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 hover:text-white transition"
+                              >
+                                  <FaVk size={18} />
+                                  VK
+                              </a>
+
+                              <a
+                                  href="https://t.me/xod_sudby"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 hover:text-white transition"
+                              >
+                                  <FaTelegram size={18} />
+                                  Telegram
+                              </a>
+
+                          </div>
                       </div>
 
+                      {/* Документы */}
                       <div className="text-sm text-white/60 space-y-2">
                           <div>
                               <a href="/offer" className="hover:text-white">
                                   Публичная оферта
                               </a>
                           </div>
+
                           <div>
                               <a href="/privacy" className="hover:text-white">
                                   Политика конфиденциальности
                               </a>
                           </div>
+
                           <div>
-                            <a href="/consent" className="hover:text-white">
-                              Согласие на обработку Персональных данных
-                            </a>
+                              <a href="/consent" className="hover:text-white">
+                                  Согласие на обработку персональных данных
+                              </a>
                           </div>
                       </div>
 
                   </div>
 
-                  {/* Юридический блок */}
-                  <div className="mt-10 text-xs text-white/40 leading-relaxed">
+                  {/* Нижняя часть */}
+                  <div className="mt-12 border-t border-white/10 pt-6 text-xs text-white/40 leading-relaxed space-y-1">
+
                       <div>
                           Индивидуальный предприниматель Лыженков Кирилл Александрович
                       </div>
+
                       <div>
                           ОГРНИП: 326784700073921 · ИНН: 781101882985
                       </div>
+
                       <div>
                           Email:{" "}
                           <a
@@ -179,9 +210,11 @@ export default function Home() {
                               info@hs-game.ru
                           </a>
                       </div>
-                      <div className="mt-2">
+
+                      <div className="pt-2">
                           © {new Date().getFullYear()} Ход Судьбы. Все права защищены.
                       </div>
+
                   </div>
 
               </div>
