@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 async function logout() {
     "use server";
@@ -27,6 +27,9 @@ export default async function TicketsAdminPage() {
 
     const registrations = await prisma.registration.findMany({
         orderBy: { createdAt: "desc" },
+        include: {
+            event: true,
+        },
     });
 
     return (
@@ -61,15 +64,11 @@ export default async function TicketsAdminPage() {
                             <th className="px-4 py-3 text-left">Игра</th>
                             <th className="px-4 py-3 text-left">Имя</th>
                             <th className="px-4 py-3 text-left">Контакт</th>
-                            <th className="px-4 py-3 text-left">Email</th>
                             <th className="px-4 py-3 text-left">Команда</th>
                             <th className="px-4 py-3 text-left">Фракция</th>
                             <th className="px-4 py-3 text-left">Билет</th>
                             <th className="px-4 py-3 text-left">Кол-во</th>
-                            <th className="px-4 py-3 text-left">Сумма</th>
-                            <th className="px-4 py-3 text-left">Статус</th>
-                            <th className="px-4 py-3 text-left">Ticket ID</th>
-                            <th className="px-4 py-3 text-left">Payment ID</th>
+                            <th className="px-4 py-3 text-left">Сообщение</th>
                         </tr>
                         </thead>
 
@@ -84,10 +83,12 @@ export default async function TicketsAdminPage() {
                                 </td>
 
                                 <td className="px-4 py-3">
-                                    <div className="font-medium">{item.eventTitle}</div>
+                                    <div className="font-medium">{item.event?.title || "—"}</div>
                                     <div className="text-xs text-zinc-500">
-                                        {item.eventDate || "—"}
-                                        {item.city ? ` • ${item.city}` : ""}
+                                        {item.event?.date
+                                            ? new Date(item.event.date).toLocaleString("ru-RU")
+                                            : "—"}
+                                        {item.event?.city ? ` • ${item.event.city}` : ""}
                                     </div>
                                 </td>
 
@@ -96,27 +97,15 @@ export default async function TicketsAdminPage() {
                                     {item.contact || "—"}
                                 </td>
                                 <td className="px-4 py-3 text-zinc-300">
-                                    {item.email || "—"}
-                                </td>
-                                <td className="px-4 py-3 text-zinc-300">
                                     {item.teamName || "—"}
                                 </td>
                                 <td className="px-4 py-3 text-zinc-300">
                                     {item.faction || "—"}
                                 </td>
                                 <td className="px-4 py-3">{item.ticket}</td>
-                                <td className="px-4 py-3">{item.qty}</td>
-                                <td className="px-4 py-3">{item.payableTotal} ₽</td>
-                                <td className="px-4 py-3">
-                    <span className="rounded-full border border-zinc-700 px-3 py-1 text-xs">
-                      {item.status}
-                    </span>
-                                </td>
-                                <td className="px-4 py-3 text-zinc-400">
-                                    {item.ticketId || "—"}
-                                </td>
-                                <td className="px-4 py-3 text-zinc-400">
-                                    {item.paymentId || "—"}
+                                <td className="px-4 py-3">{item.seats}</td>
+                                <td className="px-4 py-3 text-zinc-300">
+                                    {item.message || "—"}
                                 </td>
                             </tr>
                         ))}
@@ -124,7 +113,7 @@ export default async function TicketsAdminPage() {
                         {registrations.length === 0 && (
                             <tr>
                                 <td
-                                    colSpan={13}
+                                    colSpan={9}
                                     className="px-4 py-10 text-center text-zinc-500"
                                 >
                                     Пока нет заявок
