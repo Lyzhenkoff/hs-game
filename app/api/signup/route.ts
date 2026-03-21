@@ -159,9 +159,8 @@ export async function POST(req: Request) {
             amountRub: finalTotal,
             description,
             returnUrl,
-            email,
+            email: email || "",
             metadata: {
-                registration_id: registration.id,
                 ticket_id: ticketId,
                 promo_code: promo || "",
                 email: email || "",
