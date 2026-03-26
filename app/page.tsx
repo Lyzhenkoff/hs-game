@@ -163,7 +163,9 @@ export default function Home() {
                                   <FaTelegram size={18} />
                                   Telegram
                               </a>
-
+                              <a href="https://spb.mir-kvestov.ru/quests/hod-sudbi" target="_blank">
+                                  <img src="https://spb.mir-kvestov.ru/widgets/10062/img" width="210" alt="Отзывы на Квест в реальности Ход судьбы (Ход судьбы)" title="Отзывы на Квест в реальности Ход судьбы (Ход судьбы)"/>
+                              </a>
                           </div>
                       </div>
 
